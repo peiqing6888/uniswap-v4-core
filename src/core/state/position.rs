@@ -149,13 +149,15 @@ mod tests {
         let fees = manager.update(
             key.clone(),
             50,
-            U256::from(100),
-            U256::from(200),
+            U256::from(1) << 128,
+            U256::from(2) << 128,
         ).unwrap();
 
-        // Check fees calculation
-        assert!(fees.amount0 > 0);
-        assert!(fees.amount1 > 0);
+        println!("Fee amount0: {}", fees.amount0);
+        println!("Fee amount1: {}", fees.amount1);
+        
+        assert_eq!(fees.amount0, 100);
+        assert_eq!(fees.amount1, 200);
 
         let position = manager.get(&key).unwrap();
         assert_eq!(position.liquidity.as_u128(), 150);

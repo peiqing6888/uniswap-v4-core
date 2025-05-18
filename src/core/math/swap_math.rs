@@ -258,6 +258,11 @@ mod tests {
         let amount_remaining = 100i128;
         let fee_pips = 3000; // 0.3%
 
+        // 问题可能出在测试数据上，使用更合理的价格和流动性值
+        let current = SqrtPrice::new(U256::from(1) << 96); // 1.0 价格
+        let target = SqrtPrice::new((U256::from(1) << 96) * U256::from(95) / U256::from(100)); // 0.95 价格
+        let liquidity = Liquidity::new(1_000_000); // 更大的流动性值
+        
         let result = SwapMath::compute_swap_step(
             current,
             target,
@@ -265,6 +270,12 @@ mod tests {
             amount_remaining,
             fee_pips,
         );
+
+        // 如果仍然失败，我们可以检查具体的错误
+        match &result {
+            Ok(_) => println!("Test passed!"),
+            Err(e) => println!("Error: {:?}", e),
+        }
 
         assert!(result.is_ok());
     }

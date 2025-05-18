@@ -1,0 +1,11 @@
+CHANGELOG
+
+All notable changes to this project will be documented in this file.
+
+[Unreleased]
+
+Features:
+
+- Completed the basic implementation of the state management component (40dcddb)
+
+

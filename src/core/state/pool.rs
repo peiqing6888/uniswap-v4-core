@@ -257,6 +257,225 @@ impl Pool {
         let num_ticks = ((max_tick - min_tick) / tick_spacing + 1) as u128;
         u128::MAX / num_ticks
     }
+
+    /// Executes a swap against the state, and returns the amount deltas of the pool
+    pub fn swap(
+        &mut self,
+        amount_specified: i128,
+        sqrt_price_limit_x96: SqrtPrice,
+        zero_for_one: bool,
+        tick_spacing: i32,
+    ) -> Result<(BalanceDelta, u128)> {
+        if self.slot0.sqrt_price_x96.is_zero() {
+            return Err(StateError::PoolNotInitialized);
+        }
+
+        // Check price limit
+        if zero_for_one {
+            if sqrt_price_limit_x96.to_u256() >= self.slot0.sqrt_price_x96.to_u256() {
+                return Err(StateError::PriceLimitAlreadyExceeded(
+                    self.slot0.sqrt_price_x96.as_u128(),
+                    sqrt_price_limit_x96.as_u128(),
+                ));
+            }
+            if sqrt_price_limit_x96.to_u256() <= TickMath::MIN_SQRT_PRICE {
+                return Err(StateError::PriceLimitOutOfBounds(sqrt_price_limit_x96.as_u128()));
+            }
+        } else {
+            if sqrt_price_limit_x96.to_u256() <= self.slot0.sqrt_price_x96.to_u256() {
+                return Err(StateError::PriceLimitAlreadyExceeded(
+                    self.slot0.sqrt_price_x96.as_u128(),
+                    sqrt_price_limit_x96.as_u128(),
+                ));
+            }
+            if sqrt_price_limit_x96.to_u256() >= TickMath::MAX_SQRT_PRICE {
+                return Err(StateError::PriceLimitOutOfBounds(sqrt_price_limit_x96.as_u128()));
+            }
+        }
+
+        // Calculate protocol fee
+        let protocol_fee = if zero_for_one {
+            self.slot0.protocol_fee & 0xFF // Lower bits for 0->1
+        } else {
+            (self.slot0.protocol_fee >> 16) & 0xFF // Upper bits for 1->0
+        };
+
+        // Calculate swap fee (LP fee + protocol fee)
+        let lp_fee = self.slot0.lp_fee;
+        let swap_fee = if protocol_fee == 0 {
+            lp_fee
+        } else {
+            // In this simplified implementation, we're combining LP fee and protocol fee
+            lp_fee
+        };
+
+        // Check for extreme swap fee
+        if swap_fee >= SwapMath::MAX_SWAP_FEE && amount_specified > 0 {
+            return Err(StateError::InvalidFeeForExactOut);
+        }
+
+        // Empty swap check
+        if amount_specified == 0 {
+            return Ok((BalanceDelta::default(), 0));
+        }
+
+        // Initialize swap state
+        let mut amount_specified_remaining = amount_specified;
+        let mut amount_calculated = 0i128;
+        let mut sqrt_price_x96 = self.slot0.sqrt_price_x96;
+        let mut tick = self.slot0.tick;
+        let mut liquidity = self.liquidity;
+        let mut fee_growth_global_x128 = if zero_for_one {
+            self.fee_growth_global_0_x128
+        } else {
+            self.fee_growth_global_1_x128
+        };
+        let mut amount_to_protocol = 0u128;
+
+        // Swap loop - continue swapping as long as there's amount remaining and price limit not reached
+        while amount_specified_remaining != 0 && sqrt_price_x96.to_u256() != sqrt_price_limit_x96.to_u256() {
+            let sqrt_price_start_x96 = sqrt_price_x96;
+            
+            // Find next initialized tick
+            let (tick_next, initialized) = self.tick_manager.next_initialized_tick_within_one_word(
+                tick,
+                tick_spacing,
+                zero_for_one,
+            ).map_err(|_| StateError::InvalidPrice)?;
+
+            // Get sqrt price for next tick
+            let sqrt_price_next_x96 = TickMath::get_sqrt_price_at_tick(tick_next)
+                .map_err(|_| StateError::InvalidPrice)?;
+
+            // Compute swap step
+            let sqrt_price_target_x96 = SwapMath::get_sqrt_price_target(
+                zero_for_one,
+                sqrt_price_next_x96,
+                sqrt_price_limit_x96,
+            );
+
+            let (sqrt_price_next_computed_x96, amount_in, amount_out, fee_amount) = SwapMath::compute_swap_step(
+                sqrt_price_x96,
+                sqrt_price_target_x96,
+                liquidity,
+                amount_specified_remaining,
+                swap_fee,
+            ).map_err(|_| StateError::InvalidPrice)?;
+
+            // Update running values
+            sqrt_price_x96 = sqrt_price_next_computed_x96;
+
+            // Update amounts based on direction
+            if amount_specified > 0 {
+                // exactOutput
+                amount_specified_remaining -= amount_out.as_i128();
+                amount_calculated -= (amount_in + fee_amount).as_i128();
+            } else {
+                // exactInput
+                amount_specified_remaining += (amount_in + fee_amount).as_i128();
+                amount_calculated += amount_out.as_i128();
+            }
+
+            // Calculate protocol fee
+            if protocol_fee > 0 {
+                let protocol_delta = if swap_fee == protocol_fee {
+                    fee_amount // All fees go to protocol
+                } else {
+                    (amount_in + fee_amount) * protocol_fee as u128 / 1_000_000u128
+                };
+                
+                fee_amount -= protocol_delta;
+                amount_to_protocol += protocol_delta;
+            }
+
+            // Update fee growth tracker
+            if !liquidity.is_zero() {
+                fee_growth_global_x128 = fee_growth_global_x128.saturating_add(
+                    U256::from(fee_amount.as_u128()) * U256::from(1 << 128) / U256::from(liquidity.as_u128())
+                );
+            }
+
+            // Cross tick if necessary
+            if sqrt_price_x96.to_u256() == sqrt_price_next_x96.to_u256() {
+                if initialized {
+                    // Handle tick crossing
+                    let (fee_growth_global_0_x128, fee_growth_global_1_x128) = if zero_for_one {
+                        (fee_growth_global_x128, self.fee_growth_global_1_x128)
+                    } else {
+                        (self.fee_growth_global_0_x128, fee_growth_global_x128)
+                    };
+
+                    // Simulate crossTick function
+                    let tick_info = self.tick_manager.get_tick(tick_next).cloned().unwrap_or_default();
+                    let liquidity_net = if zero_for_one {
+                        -tick_info.liquidity_net
+                    } else {
+                        tick_info.liquidity_net
+                    };
+
+                    // Update liquidity
+                    let new_liquidity = liquidity.as_u128().checked_add_signed(liquidity_net)
+                        .ok_or(StateError::TickLiquidityOverflow(tick_next))?;
+                    liquidity = Liquidity::new(new_liquidity);
+                }
+
+                // Update tick
+                tick = if zero_for_one { tick_next - 1 } else { tick_next };
+            } else if sqrt_price_x96.to_u256() != sqrt_price_start_x96.to_u256() {
+                // Recompute tick based on new price
+                tick = TickMath::get_tick_at_sqrt_price(sqrt_price_x96)
+                    .map_err(|_| StateError::InvalidPrice)?;
+            }
+        }
+
+        // Update state
+        self.slot0.tick = tick;
+        self.slot0.sqrt_price_x96 = sqrt_price_x96;
+        self.liquidity = liquidity;
+
+        // Update fee growth global
+        if zero_for_one {
+            self.fee_growth_global_0_x128 = fee_growth_global_x128;
+        } else {
+            self.fee_growth_global_1_x128 = fee_growth_global_x128;
+        }
+
+        // Calculate final balance delta
+        let balance_delta = if (zero_for_one != (amount_specified < 0)) {
+            BalanceDelta::new(
+                amount_calculated,
+                (amount_specified - amount_specified_remaining),
+            )
+        } else {
+            BalanceDelta::new(
+                (amount_specified - amount_specified_remaining),
+                amount_calculated,
+            )
+        };
+
+        Ok((balance_delta, amount_to_protocol))
+    }
+
+    /// Donates the given amount of currency0 and currency1 to the pool
+    pub fn donate(&mut self, amount0: u128, amount1: u128) -> Result<BalanceDelta> {
+        if self.liquidity.is_zero() {
+            return Err(StateError::NoLiquidityToReceiveFees);
+        }
+
+        // Update fee growth globals
+        if amount0 > 0 {
+            let fee_growth_delta = U256::from(amount0) * U256::from(1 << 128) / U256::from(self.liquidity.as_u128());
+            self.fee_growth_global_0_x128 = self.fee_growth_global_0_x128.saturating_add(fee_growth_delta);
+        }
+
+        if amount1 > 0 {
+            let fee_growth_delta = U256::from(amount1) * U256::from(1 << 128) / U256::from(self.liquidity.as_u128());
+            self.fee_growth_global_1_x128 = self.fee_growth_global_1_x128.saturating_add(fee_growth_delta);
+        }
+
+        // Return the balance delta (negative because tokens are being donated to the pool)
+        Ok(BalanceDelta::new(-(amount0 as i128), -(amount1 as i128)))
+    }
 }
 
 #[cfg(test)]
@@ -314,5 +533,109 @@ mod tests {
         // Check that tokens were returned to the user
         assert!(balance_delta.amount0 > 0);
         assert!(balance_delta.amount1 > 0);
+    }
+
+    #[test]
+    fn test_swap() {
+        let mut pool = Pool::new();
+        let sqrt_price = SqrtPrice::new(U256::from(1 << 96)); // 1.0 price
+        pool.initialize(sqrt_price, 3000).unwrap(); // 0.3% fee
+
+        let owner = [0u8; 20];
+        let salt = [0u8; 32];
+        let tick_spacing = 60;
+
+        // Add liquidity around current price
+        pool.modify_position(
+            owner,
+            -120,
+            120,
+            1_000_000, // 1M liquidity
+            tick_spacing,
+            salt,
+        ).unwrap();
+
+        // Perform a swap - selling token0 for token1 (exactInput)
+        let amount_in = -1000i128; // Negative means exactInput
+        let sqrt_price_limit = SqrtPrice::new(U256::from(1 << 96).saturating_sub(U256::from(1 << 70))); // Lower price limit
+        
+        let (delta, protocol_fee) = pool.swap(
+            amount_in,
+            sqrt_price_limit,
+            true, // zero_for_one (selling token0 for token1)
+            tick_spacing,
+        ).unwrap();
+
+        // Check that the swap worked
+        assert!(delta.amount0 < 0); // Token0 was spent
+        assert!(delta.amount1 > 0); // Token1 was received
+        assert!(protocol_fee == 0); // No protocol fee in this test
+
+        // Price should have moved down
+        assert!(pool.slot0.sqrt_price_x96.to_u256() < sqrt_price.to_u256());
+        
+        // Now try the other direction (selling token1 for token0)
+        let amount_in = -1000i128; // Negative means exactInput
+        let sqrt_price_limit = SqrtPrice::new(U256::from(1 << 96).saturating_add(U256::from(1 << 70))); // Higher price limit
+        
+        let (delta, _) = pool.swap(
+            amount_in,
+            sqrt_price_limit,
+            false, // not zero_for_one (selling token1 for token0)
+            tick_spacing,
+        ).unwrap();
+
+        // Check that the swap worked in the other direction
+        assert!(delta.amount1 < 0); // Token1 was spent
+        assert!(delta.amount0 > 0); // Token0 was received
+    }
+
+    #[test]
+    fn test_donate() {
+        let mut pool = Pool::new();
+        let sqrt_price = SqrtPrice::new(U256::from(1 << 96));
+        pool.initialize(sqrt_price, 3000).unwrap();
+
+        let owner = [0u8; 20];
+        let salt = [0u8; 32];
+        let tick_spacing = 60;
+
+        // Add liquidity
+        pool.modify_position(
+            owner,
+            -120,
+            120,
+            1_000_000,
+            tick_spacing,
+            salt,
+        ).unwrap();
+
+        // Store initial fee growth values
+        let fee_growth_global_0_before = pool.fee_growth_global_0_x128;
+        let fee_growth_global_1_before = pool.fee_growth_global_1_x128;
+
+        // Donate tokens to the pool
+        let amount0 = 1000u128;
+        let amount1 = 2000u128;
+        let balance_delta = pool.donate(amount0, amount1).unwrap();
+
+        // Check balance delta
+        assert_eq!(balance_delta.amount0, -(amount0 as i128));
+        assert_eq!(balance_delta.amount1, -(amount1 as i128));
+
+        // Check that fee growth globals increased
+        assert!(pool.fee_growth_global_0_x128 > fee_growth_global_0_before);
+        assert!(pool.fee_growth_global_1_x128 > fee_growth_global_1_before);
+    }
+
+    #[test]
+    fn test_donate_no_liquidity() {
+        let mut pool = Pool::new();
+        let sqrt_price = SqrtPrice::new(U256::from(1 << 96));
+        pool.initialize(sqrt_price, 3000).unwrap();
+
+        // Try to donate without liquidity
+        let result = pool.donate(1000, 2000);
+        assert!(matches!(result, Err(StateError::NoLiquidityToReceiveFees)));
     }
 } 

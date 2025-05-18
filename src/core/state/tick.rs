@@ -165,6 +165,11 @@ impl TickManager {
             fee_growth_global_1_x128.saturating_sub(fee_growth_below_1_x128).saturating_sub(fee_growth_above_1_x128),
         )
     }
+
+    /// Gets information about a specific tick
+    pub fn get_tick(&self, tick: i32) -> Option<&TickInfo> {
+        self.ticks.get(&tick)
+    }
 }
 
 #[cfg(test)]

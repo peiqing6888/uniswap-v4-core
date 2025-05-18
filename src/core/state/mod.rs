@@ -42,6 +42,9 @@ pub enum StateError {
 
     #[error("Invalid fee for exact out")]
     InvalidFeeForExactOut,
+
+    #[error("Invalid price")]
+    InvalidPrice,
 }
 
 /// Result type for state operations

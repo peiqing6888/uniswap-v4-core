@@ -1,0 +1,74 @@
+# git-cliff configuration file
+# For more information see: https://git-cliff.org/docs/configuration
+
+[changelog]
+# changelog header
+header = """
+CHANGELOG
+
+All notable changes to this project will be documented in this file.
+
+"""
+# changelog body template
+body = """
+{% if version %}\
+[{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+[Unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+{{ group | upper_first }}:
+{% for commit in commits %}
+- {% if commit.breaking %}[BREAKING CHANGE] {% endif %}{{ commit.message | upper_first }}{% if commit.id %} ({{ commit.id | truncate(length=7, end="") }}){% endif %}
+{% endfor %}
+{% endfor %}\n
+"""
+# remove the release URL
+trim = true
+# show the commit link
+link_tag_version = false
+# regex for extracting change type
+group_by = "scope"
+# regex to ignore commits
+ignore_regex = "^chore"
+# sort groups and commits
+sort_by = "newest"
+
+# custom render settings
+[git]
+# parse conventional commits
+conventional_commits = true
+# commit message parsers
+commit_parsers = [
+    { message = "^feat", group = "Features" },
+    { message = "^fix", group = "Bug Fixes" },
+    { message = "^docs", group = "Documentation" },
+    { message = "^perf", group = "Performance" },
+    { message = "^refactor", group = "Refactor" },
+    { message = "^style", group = "Styling" },
+    { message = "^test", group = "Testing" },
+    { message = "^chore\\(release\\): prepare for", skip = true },
+    { message = "^chore", group = "Miscellaneous Tasks" },
+    { body = ".*security", group = "Security" },
+]
+# extract breaking changes markers
+breaking_parser = [
+    { message = "^[\\w\\!]+(?:\\(.+\\))?\\!:", breaking = true },
+    { body = "BREAKING CHANGE:", breaking = true },
+]
+# process commit messages
+commit_preprocessors = [
+    { pattern = '\((\w+\s)?#([0-9]+)\)', replace = "(#${2})" },
+]
+# disable extracting authors
+commit_authors = false
+# disable displaying commit ids
+protect_breaking_commits = false
+
+[git.tag]
+# disable generating changes from the most recent tag
+generate_all = false
+# regex for matching version tags
+regex = "^v[0-9.]+$"
+# sort method
+sort_by = "semver" 

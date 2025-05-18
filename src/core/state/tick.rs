@@ -6,10 +6,10 @@ use super::{Result, StateError, types::{TickInfo, Slot0}};
 
 /// Manages the state and operations of ticks in a pool
 pub struct TickManager {
-    /// Mapping of tick index to tick info
+    /// Maps of tick index to tick data
     ticks: BTreeMap<i32, TickInfo>,
-    /// Bitmap of initialized ticks
-    tick_bitmap: BTreeMap<i16, u256>,
+    /// Maps of word indexes to tick bitmap
+    tick_bitmap: BTreeMap<i16, U256>,
 }
 
 impl TickManager {
@@ -86,7 +86,9 @@ impl TickManager {
         tick_spacing: i32,
         lte: bool,
     ) -> MathResult<(i32, bool)> {
-        let compressed = tick / tick_spacing;
+        // Calculate the compressed tick by dividing by tick_spacing
+        // Adjust for negative ticks that don't align with tick_spacing
+        let mut compressed = tick / tick_spacing;
         if tick < 0 && tick % tick_spacing != 0 {
             compressed -= 1;
         }
@@ -96,11 +98,11 @@ impl TickManager {
         let maximum_tick = TickMath::MAX_TICK / tick_spacing * tick_spacing;
 
         if lte {
-            let mask = self.tick_bitmap.get(&word_pos).copied().unwrap_or(0);
+            let mask = self.tick_bitmap.get(&word_pos).copied().unwrap_or(U256::zero());
             let current = (compressed % 256) as u8;
-            let masked = mask & ((1u256 << current as u32) - 1);
+            let masked = mask & ((U256::one() << current as u32) - U256::one());
 
-            if masked != 0 {
+            if masked != U256::zero() {
                 // Find rightmost set bit
                 let rightmost = masked.trailing_zeros() as i32;
                 let next = (word_pos as i32) * 256 + rightmost;
@@ -110,11 +112,11 @@ impl TickManager {
                 }
             }
         } else {
-            let mask = self.tick_bitmap.get(&word_pos).copied().unwrap_or(0);
+            let mask = self.tick_bitmap.get(&word_pos).copied().unwrap_or(U256::zero());
             let current = (compressed % 256) as u8;
-            let masked = mask & !((1u256 << current as u32) - 1);
+            let masked = mask & !((U256::one() << current as u32) - U256::one());
 
-            if masked != 0 {
+            if masked != U256::zero() {
                 // Find leftmost set bit
                 let leftmost = 255 - masked.leading_zeros() as i32;
                 let next = (word_pos as i32) * 256 + leftmost;
@@ -175,7 +177,7 @@ impl TickManager {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::math::types::SqrtPrice;
+    use crate::core::math::SqrtPrice;
 
     #[test]
     fn test_update_tick() {

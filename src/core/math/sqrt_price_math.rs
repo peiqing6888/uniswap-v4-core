@@ -10,6 +10,72 @@ use crate::core::math::{
 pub struct SqrtPriceMath;
 
 impl SqrtPriceMath {
+    /// Gets the amount0 delta between two prices
+    pub fn get_amount0_delta(
+        sqrt_price_a_x96: SqrtPrice,
+        sqrt_price_b_x96: SqrtPrice,
+        liquidity: Liquidity,
+        round_up: bool,
+    ) -> Result<U256> {
+        if sqrt_price_a_x96.to_u256() > sqrt_price_b_x96.to_u256() {
+            return Self::get_amount0_delta(sqrt_price_b_x96, sqrt_price_a_x96, liquidity, round_up);
+        }
+
+        let numerator1 = U256::from(liquidity.to_u128()) << 96;
+        let numerator2 = sqrt_price_b_x96.to_u256() - sqrt_price_a_x96.to_u256();
+
+        if sqrt_price_a_x96.to_u256().is_zero() {
+            return Err(MathError::InvalidPrice);
+        }
+
+        if round_up {
+            let product = sqrt_price_b_x96.to_u256() * sqrt_price_a_x96.to_u256();
+            let result = FullMath::mul_div_rounding_up(
+                numerator1,
+                numerator2,
+                product,
+            ).ok_or(MathError::Overflow)?;
+            Ok(result)
+        } else {
+            let product = sqrt_price_b_x96.to_u256() * sqrt_price_a_x96.to_u256();
+            let result = FullMath::mul_div(
+                numerator1,
+                numerator2,
+                product,
+            ).ok_or(MathError::Overflow)?;
+            Ok(result)
+        }
+    }
+
+    /// Gets the amount1 delta between two prices
+    pub fn get_amount1_delta(
+        sqrt_price_a_x96: SqrtPrice,
+        sqrt_price_b_x96: SqrtPrice,
+        liquidity: Liquidity,
+        round_up: bool,
+    ) -> Result<U256> {
+        if sqrt_price_a_x96.to_u256() > sqrt_price_b_x96.to_u256() {
+            return Self::get_amount1_delta(sqrt_price_b_x96, sqrt_price_a_x96, liquidity, round_up);
+        }
+
+        let numerator = U256::from(liquidity.to_u128()) * (sqrt_price_b_x96.to_u256() - sqrt_price_a_x96.to_u256());
+        let denominator = Q96;
+
+        if round_up {
+            FullMath::mul_div_rounding_up(
+                numerator,
+                U256::one(),
+                denominator,
+            ).ok_or(MathError::Overflow)
+        } else {
+            FullMath::mul_div(
+                numerator,
+                U256::one(),
+                denominator,
+            ).ok_or(MathError::Overflow)
+        }
+    }
+
     /// Gets the next sqrt price given a delta of token0
     pub fn get_next_sqrt_price_from_amount0_rounding_up(
         sqrt_price_x96: SqrtPrice,
@@ -24,9 +90,9 @@ impl SqrtPriceMath {
         let numerator1 = U256::from(liquidity.to_u128()) << 96;
 
         if add {
-            let product = amount.full_mul(sqrt_price_x96.to_u256());
-            if product / amount == sqrt_price_x96.to_u256() {
-                let denominator = numerator1 + product;
+            let product_result = amount.checked_mul(sqrt_price_x96.to_u256());
+            if let Some(product) = product_result {
+                let denominator = numerator1.checked_add(product).ok_or(MathError::Overflow)?;
                 if denominator >= numerator1 {
                     return Ok(SqrtPrice::new(
                         FullMath::mul_div_rounding_up(numerator1, sqrt_price_x96.to_u256(), denominator)
@@ -39,14 +105,14 @@ impl SqrtPriceMath {
                 numerator1 / (numerator1 / sqrt_price_x96.to_u256() + amount),
             ))
         } else {
-            let product = amount.full_mul(sqrt_price_x96.to_u256());
+            let product_result = amount.checked_mul(sqrt_price_x96.to_u256());
             
-            // Check for price overflow
-            if product / amount != sqrt_price_x96.to_u256() || numerator1 <= product {
+            if product_result.is_none() || numerator1 <= product_result.unwrap_or(U256::zero()) {
                 return Err(MathError::PriceOverflow);
             }
 
-            let denominator = numerator1 - product;
+            let product = product_result.unwrap();
+            let denominator = numerator1.checked_sub(product).ok_or(MathError::Overflow)?;
             Ok(SqrtPrice::new(
                 FullMath::mul_div_rounding_up(numerator1, sqrt_price_x96.to_u256(), denominator)
                     .ok_or(MathError::Overflow)?,

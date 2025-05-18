@@ -1,10 +1,12 @@
-use primitive_types::U256;
+use std::cmp::min;
+use primitive_types::{U256, U512};
+use num_traits::Zero;
 
 use crate::core::math::{
     TickMath,
     SqrtPriceMath,
     SwapMath,
-    types::{SqrtPrice, Liquidity},
+    types::{SqrtPrice, Liquidity, U256Ext},
     Result as MathResult,
 };
 
@@ -60,7 +62,7 @@ impl Pool {
             return Err(StateError::PoolAlreadyInitialized);
         }
 
-        let tick = TickMath::get_tick_at_sqrt_price(sqrt_price_x96)
+        let tick = TickMath::get_tick_at_sqrt_price(sqrt_price_x96.to_u256())
             .map_err(|_| StateError::InvalidPrice)?;
 
         self.slot0 = Slot0 {
@@ -183,15 +185,17 @@ impl Pool {
             if liquidity_delta != 0 {
                 let (amount0, amount1) = if self.slot0.tick < tick_lower {
                     // Current tick below position
-                    let price_lower = TickMath::get_sqrt_price_at_tick(tick_lower)
+                    let price_lower_u256 = TickMath::get_sqrt_price_at_tick(tick_lower)
                         .map_err(|_| StateError::InvalidPrice)?;
-                    let price_upper = TickMath::get_sqrt_price_at_tick(tick_upper)
+                    let price_upper_u256 = TickMath::get_sqrt_price_at_tick(tick_upper)
                         .map_err(|_| StateError::InvalidPrice)?;
+                    let price_lower = SqrtPrice::new(price_lower_u256);
+                    let price_upper = SqrtPrice::new(price_upper_u256);
                     (
                         SqrtPriceMath::get_amount0_delta(
                             price_lower,
                             price_upper,
-                            liquidity_delta.abs() as u128,
+                            Liquidity::new(liquidity_delta.abs() as u128),
                             true,
                         ).map_err(|_| StateError::InvalidPrice)?,
                         U256::zero(),
@@ -199,34 +203,37 @@ impl Pool {
                 } else if self.slot0.tick < tick_upper {
                     // Current tick inside position
                     let price_current = self.slot0.sqrt_price_x96;
-                    let price_upper = TickMath::get_sqrt_price_at_tick(tick_upper)
+                    let price_upper_u256 = TickMath::get_sqrt_price_at_tick(tick_upper)
                         .map_err(|_| StateError::InvalidPrice)?;
+                    let price_upper = SqrtPrice::new(price_upper_u256);
                     (
                         SqrtPriceMath::get_amount0_delta(
                             price_current,
                             price_upper,
-                            liquidity_delta.abs() as u128,
+                            Liquidity::new(liquidity_delta.abs() as u128),
                             true,
                         ).map_err(|_| StateError::InvalidPrice)?,
                         SqrtPriceMath::get_amount1_delta(
                             price_current,
                             price_upper,
-                            liquidity_delta.abs() as u128,
+                            Liquidity::new(liquidity_delta.abs() as u128),
                             true,
                         ).map_err(|_| StateError::InvalidPrice)?,
                     )
                 } else {
                     // Current tick above position
-                    let price_lower = TickMath::get_sqrt_price_at_tick(tick_lower)
+                    let price_lower_u256 = TickMath::get_sqrt_price_at_tick(tick_lower)
                         .map_err(|_| StateError::InvalidPrice)?;
-                    let price_upper = TickMath::get_sqrt_price_at_tick(tick_upper)
+                    let price_upper_u256 = TickMath::get_sqrt_price_at_tick(tick_upper)
                         .map_err(|_| StateError::InvalidPrice)?;
+                    let price_lower = SqrtPrice::new(price_lower_u256);
+                    let price_upper = SqrtPrice::new(price_upper_u256);
                     (
                         U256::zero(),
                         SqrtPriceMath::get_amount1_delta(
                             price_lower,
                             price_upper,
-                            liquidity_delta.abs() as u128,
+                            Liquidity::new(liquidity_delta.abs() as u128),
                             true,
                         ).map_err(|_| StateError::InvalidPrice)?,
                     )
@@ -344,8 +351,9 @@ impl Pool {
             ).map_err(|_| StateError::InvalidPrice)?;
 
             // Get sqrt price for next tick
-            let sqrt_price_next_x96 = TickMath::get_sqrt_price_at_tick(tick_next)
+            let sqrt_price_next_x96_u256 = TickMath::get_sqrt_price_at_tick(tick_next)
                 .map_err(|_| StateError::InvalidPrice)?;
+            let sqrt_price_next_x96 = SqrtPrice::new(sqrt_price_next_x96_u256);
 
             // Compute swap step
             let sqrt_price_target_x96 = SwapMath::get_sqrt_price_target(
@@ -354,7 +362,7 @@ impl Pool {
                 sqrt_price_limit_x96,
             );
 
-            let (sqrt_price_next_computed_x96, amount_in, amount_out, fee_amount) = SwapMath::compute_swap_step(
+            let (sqrt_price_next_computed_x96, amount_in, amount_out, mut fee_amount) = SwapMath::compute_swap_step(
                 sqrt_price_x96,
                 sqrt_price_target_x96,
                 liquidity,
@@ -378,25 +386,27 @@ impl Pool {
 
             // Calculate protocol fee
             if protocol_fee > 0 {
-                let protocol_delta = if swap_fee == protocol_fee {
-                    fee_amount // All fees go to protocol
+                let protocol_delta_u128 = if swap_fee == protocol_fee {
+                    fee_amount.as_u128() // All fees go to protocol
                 } else {
-                    (amount_in + fee_amount) * protocol_fee as u128 / 1_000_000u128
+                    let protocol_fee_u256 = U256::from(protocol_fee);
+                    let amount_in_plus_fee = amount_in + fee_amount;
+                    (amount_in_plus_fee * protocol_fee_u256 / U256::from(1_000_000u128)).as_u128()
                 };
                 
-                fee_amount -= protocol_delta;
-                amount_to_protocol += protocol_delta;
+                fee_amount = fee_amount - U256::from(protocol_delta_u128);
+                amount_to_protocol += protocol_delta_u128;
             }
 
             // Update fee growth tracker
             if !liquidity.is_zero() {
                 fee_growth_global_x128 = fee_growth_global_x128.saturating_add(
-                    U256::from(fee_amount.as_u128()) * U256::from(1 << 128) / U256::from(liquidity.as_u128())
+                    U256::from(fee_amount.as_u128()) * (U256::from(1) << 128) / U256::from(liquidity.as_u128())
                 );
             }
 
             // Cross tick if necessary
-            if sqrt_price_x96.to_u256() == sqrt_price_next_x96.to_u256() {
+            if sqrt_price_x96.to_u256() == sqrt_price_next_x96_u256 {
                 if initialized {
                     // Handle tick crossing
                     let (fee_growth_global_0_x128, fee_growth_global_1_x128) = if zero_for_one {
@@ -423,7 +433,7 @@ impl Pool {
                 tick = if zero_for_one { tick_next - 1 } else { tick_next };
             } else if sqrt_price_x96.to_u256() != sqrt_price_start_x96.to_u256() {
                 // Recompute tick based on new price
-                tick = TickMath::get_tick_at_sqrt_price(sqrt_price_x96)
+                tick = TickMath::get_tick_at_sqrt_price(sqrt_price_x96.to_u256())
                     .map_err(|_| StateError::InvalidPrice)?;
             }
         }
@@ -464,12 +474,12 @@ impl Pool {
 
         // Update fee growth globals
         if amount0 > 0 {
-            let fee_growth_delta = U256::from(amount0) * U256::from(1 << 128) / U256::from(self.liquidity.as_u128());
+            let fee_growth_delta = U256::from(amount0) * (U256::from(1) << 128) / U256::from(self.liquidity.as_u128());
             self.fee_growth_global_0_x128 = self.fee_growth_global_0_x128.saturating_add(fee_growth_delta);
         }
 
         if amount1 > 0 {
-            let fee_growth_delta = U256::from(amount1) * U256::from(1 << 128) / U256::from(self.liquidity.as_u128());
+            let fee_growth_delta = U256::from(amount1) * (U256::from(1) << 128) / U256::from(self.liquidity.as_u128());
             self.fee_growth_global_1_x128 = self.fee_growth_global_1_x128.saturating_add(fee_growth_delta);
         }
 
@@ -485,7 +495,7 @@ mod tests {
     #[test]
     fn test_pool_initialization() {
         let mut pool = Pool::new();
-        let sqrt_price = SqrtPrice::new(U256::from(1 << 96));
+        let sqrt_price = SqrtPrice::new(U256::from(2).pow(U256::from(96)));
         let lp_fee = 3000; // 0.3%
 
         let tick = pool.initialize(sqrt_price, lp_fee).unwrap();
@@ -496,7 +506,7 @@ mod tests {
     #[test]
     fn test_modify_position() {
         let mut pool = Pool::new();
-        let sqrt_price = SqrtPrice::new(U256::from(1 << 96));
+        let sqrt_price = SqrtPrice::new(U256::from(2).pow(U256::from(96)));
         pool.initialize(sqrt_price, 3000).unwrap();
 
         let owner = [0u8; 20];
@@ -538,7 +548,7 @@ mod tests {
     #[test]
     fn test_swap() {
         let mut pool = Pool::new();
-        let sqrt_price = SqrtPrice::new(U256::from(1 << 96)); // 1.0 price
+        let sqrt_price = SqrtPrice::new(U256::from(2).pow(U256::from(96))); // 1.0 price
         pool.initialize(sqrt_price, 3000).unwrap(); // 0.3% fee
 
         let owner = [0u8; 20];
@@ -557,7 +567,7 @@ mod tests {
 
         // Perform a swap - selling token0 for token1 (exactInput)
         let amount_in = -1000i128; // Negative means exactInput
-        let sqrt_price_limit = SqrtPrice::new(U256::from(1 << 96).saturating_sub(U256::from(1 << 70))); // Lower price limit
+        let sqrt_price_limit = SqrtPrice::new(U256::from(2).pow(U256::from(96)).saturating_sub(U256::from(2).pow(U256::from(70)))); // Lower price limit
         
         let (delta, protocol_fee) = pool.swap(
             amount_in,
@@ -576,7 +586,7 @@ mod tests {
         
         // Now try the other direction (selling token1 for token0)
         let amount_in = -1000i128; // Negative means exactInput
-        let sqrt_price_limit = SqrtPrice::new(U256::from(1 << 96).saturating_add(U256::from(1 << 70))); // Higher price limit
+        let sqrt_price_limit = SqrtPrice::new(U256::from(2).pow(U256::from(96)).saturating_add(U256::from(2).pow(U256::from(70)))); // Higher price limit
         
         let (delta, _) = pool.swap(
             amount_in,
@@ -593,7 +603,7 @@ mod tests {
     #[test]
     fn test_donate() {
         let mut pool = Pool::new();
-        let sqrt_price = SqrtPrice::new(U256::from(1 << 96));
+        let sqrt_price = SqrtPrice::new(U256::from(2).pow(U256::from(96)));
         pool.initialize(sqrt_price, 3000).unwrap();
 
         let owner = [0u8; 20];
@@ -631,7 +641,7 @@ mod tests {
     #[test]
     fn test_donate_no_liquidity() {
         let mut pool = Pool::new();
-        let sqrt_price = SqrtPrice::new(U256::from(1 << 96));
+        let sqrt_price = SqrtPrice::new(U256::from(2).pow(U256::from(96)));
         pool.initialize(sqrt_price, 3000).unwrap();
 
         // Try to donate without liquidity

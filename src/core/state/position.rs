@@ -1,7 +1,9 @@
 use std::collections::HashMap;
+use std::collections::BTreeMap;
+use num_traits::Zero;
 use primitive_types::U256;
 
-use crate::core::math::types::Liquidity;
+use crate::core::math::types::{Liquidity, SqrtPrice};
 use super::{Result, StateError, types::{Position, BalanceDelta}};
 
 /// Key for identifying a position
@@ -49,7 +51,7 @@ impl PositionManager {
         fee_growth_inside_0_x128: U256,
         fee_growth_inside_1_x128: U256,
     ) -> Result<BalanceDelta> {
-        let position = self.positions.entry(key).or_default();
+        let position = self.positions.entry(key.clone()).or_default();
 
         let fees_owed = if position.liquidity.is_zero() {
             // For a new position, no fees are owed

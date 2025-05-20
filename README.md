@@ -26,8 +26,8 @@
 * [X] Comprehensive test suite
   * [X] 34/34 tests passing with full coverage
 * [ ] Advanced features (in progress)
-  * [ ] Flash loans
-  * [ ] Multi-pool routing
+  * [X] Flash loans
+  * [X] Multi-pool routing
   * [ ] Custom hooks implementations
   * [ ] Advanced gas optimizations
 
@@ -111,24 +111,25 @@ This project uses a hybrid approach:
 ### Common Issues & Best Practices
 
 1. **Type Conversions**: When working with U256 and other numeric types:
+
    - Use `as_u128()`, `as_i128()` methods for safe conversions
    - Prefer checked arithmetic operations to avoid overflow/underflow
    - Be cautious when shifting bits in large integers to prevent overflow
-
 2. **Mutability Considerations**:
+
    - Declare variables as mutable (`let mut x`) when they need to be modified
    - Pay special attention to parameters in math functions that modify their inputs
-
 3. **Module Organization**:
+
    - Ensure modules are properly exported with `pub` when needed by external code
    - Use proper import paths (e.g., `crate::core::math::types`) consistently
-
 4. **Test Strategies**:
+
    - Test both edge cases and typical scenarios
    - For price calculations, use realistic price values to avoid precision issues
    - When testing swaps, use appropriate price limits based on swap direction
-
 5. **Debugging Tips**:
+
    - Use `println!()` statements to trace values in tests
    - Compare values against the Solidity implementation for verification
    - Check for off-by-one errors in tick calculations

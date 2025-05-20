@@ -5,6 +5,11 @@ pub mod core {
     pub mod pool;
     pub mod math;
     pub mod state;
+    pub mod flash_loan;
+    pub mod pool_manager;
+    
+    pub use pool_manager::PoolManager;
+    pub use flash_loan::*;
 }
 
 pub mod hooks;
@@ -31,6 +36,9 @@ pub enum Error {
     
     #[error("FFI error: {0}")]
     FFI(String),
+    
+    #[error("Flash loan error: {0}")]
+    FlashLoan(String),
 }
 
 /// Result type for the crate

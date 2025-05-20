@@ -1,3 +1,6 @@
+use primitive_types::U256;
+use ethers::types::Address;
+
 pub mod currency;
 pub mod lock;
 pub mod callback;
@@ -10,10 +13,11 @@ pub use callback::*;
 pub use error::*;
 pub use examples::*;
 
+// Constants
+pub const ZERO_ADDRESS: Address = Address::zero();
+
 // Main flash loan module
 // This module provides the implementation of flash loans for Uniswap V4
-
-use ethers::types::{Address, U256};
 
 /// Flash loan manager for the Uniswap V4 core
 pub struct FlashLoanManager {
@@ -43,12 +47,13 @@ impl CurrencyReserves {
         }
     }
     
-    /// Reset the synced currency
+    /// Reset the currency
     pub fn reset_currency(&mut self) {
         self.synced_currency = None;
+        self.reserves = U256::zero();
     }
     
-    /// Sync currency and reserves
+    /// Sync the currency and reserves
     pub fn sync_currency_and_reserves(&mut self, currency: Currency, reserves: U256) {
         self.synced_currency = Some(currency);
         self.reserves = reserves;
@@ -75,13 +80,8 @@ impl FlashLoanManager {
         }
     }
     
-    /// Unlock the pool manager and execute the callback
+    /// Unlock the pool manager to execute a flash loan callback
     pub fn unlock<C: FlashLoanCallback>(&mut self, callback: &mut C, data: &[u8]) -> Result<Vec<u8>, FlashLoanError> {
-        // Check if already unlocked
-        if self.lock.is_unlocked() {
-            return Err(FlashLoanError::AlreadyUnlocked);
-        }
-        
         // Create unlock guard (automatically locks on drop)
         let _guard = match UnlockGuard::new(&self.lock) {
             Ok(guard) => guard,
@@ -101,8 +101,10 @@ impl FlashLoanManager {
     
     /// Take a currency from the pool manager (flash loan)
     pub fn take(&self, currency: Currency, to: Address, amount: u128) -> Result<(), FlashLoanError> {
-        // Note: In a real implementation, you would check if the pool manager is locked
-        // For testing purposes, we'll skip this check
+        // Check if the pool manager is locked
+        if !self.lock.is_unlocked() {
+            return Err(FlashLoanError::ManagerLocked);
+        }
         
         // Account the delta (negative because it's being taken)
         self.currency_delta_tracker.apply_delta(to, currency, -(amount as i128));
@@ -115,8 +117,10 @@ impl FlashLoanManager {
     
     /// Settle a currency to the pool manager (repay flash loan)
     pub fn settle(&mut self, recipient: Address, value: U256) -> Result<U256, FlashLoanError> {
-        // Note: In a real implementation, you would check if the pool manager is locked
-        // For testing purposes, we'll skip this check
+        // Check if the pool manager is locked
+        if !self.lock.is_unlocked() {
+            return Err(FlashLoanError::ManagerLocked);
+        }
         
         let currency = match self.currency_reserves.get_synced_currency() {
             Some(curr) => curr,
@@ -175,8 +179,10 @@ impl FlashLoanManager {
     
     /// Clear a positive delta (used for dust amounts)
     pub fn clear(&self, currency: Currency, address: Address, amount: u128) -> Result<(), FlashLoanError> {
-        // Note: In a real implementation, you would check if the pool manager is locked
-        // For testing purposes, we'll skip this check
+        // Check if the pool manager is locked
+        if !self.lock.is_unlocked() {
+            return Err(FlashLoanError::ManagerLocked);
+        }
         
         let current = self.get_delta(address, currency);
         let amount_delta = amount as i128;

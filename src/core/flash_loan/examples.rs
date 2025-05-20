@@ -9,8 +9,8 @@ use crate::bindings::token::TokenInteractor;
 use std::sync::Arc;
 use std::cell::RefCell;
 
-/// 简单的 Flash Loan 执行器
-/// 用于执行 Flash Loan 操作，避免递归借用问题
+/// Simple Flash Loan executor
+/// Used to execute Flash Loan operations, avoiding recursive borrowing issues
 pub struct FlashLoanExecutor {
     pub take_operations: Vec<(Currency, Address, u128)>,
     pub settle_operations: Vec<(Address, U256)>,
@@ -33,12 +33,12 @@ impl FlashLoanExecutor {
     }
     
     pub fn execute(&self, pool_manager: &mut PoolManager) -> Result<(), FlashLoanError> {
-        // 执行所有 take 操作
+        // Execute all take operations
         for (currency, to, amount) in &self.take_operations {
             pool_manager.take(*currency, *to, *amount)?;
         }
         
-        // 执行所有 settle 操作
+        // Execute all settle operations
         for (recipient, value) in &self.settle_operations {
             pool_manager.settle(*recipient, *value)?;
         }
@@ -47,23 +47,23 @@ impl FlashLoanExecutor {
     }
 }
 
-/// 简单的 Flash Loan 示例
-/// 这个示例展示了如何从池子中借用代币，然后偿还代币
+/// Simple Flash Loan example
+/// This example demonstrates how to borrow tokens from a pool and then repay them
 pub struct SimpleFlashLoanExample {
-    /// 借用的代币
+    /// Borrowed token
     currency: Currency,
-    /// 借用的金额
+    /// Borrowed amount
     amount: u128,
-    /// 接收代币的地址
+    /// Token recipient address
     recipient: Address,
-    /// 代币交互器
+    /// Token interactor
     token_interactor: Option<Arc<TokenInteractor>>,
-    /// Flash Loan 执行器
+    /// Flash Loan executor
     executor: FlashLoanExecutor,
 }
 
 impl SimpleFlashLoanExample {
-    /// 创建一个新的 Flash Loan 示例
+    /// Create a new Flash Loan example
     pub fn new(
         currency: Currency,
         amount: u128,
@@ -82,22 +82,22 @@ impl SimpleFlashLoanExample {
         }
     }
     
-    /// 设置代币交互器
+    /// Set token interactor
     pub fn with_token_interactor(mut self, token_interactor: Arc<TokenInteractor>) -> Self {
         self.token_interactor = Some(token_interactor);
         self
     }
     
-    /// 执行 Flash Loan
+    /// Execute Flash Loan
     pub fn execute(&self, pool_manager: &mut PoolManager) -> Result<(), FlashLoanError> {
-        // 1. 借用代币
+        // 1. Borrow tokens
         pool_manager.take(self.currency, self.recipient, self.amount)?;
         
-        // 2. 在这里执行套利或其他操作
-        // 例如，可以在其他 DEX 上进行交易
+        // 2. Execute arbitrage or other operations here
+        // For example, you can trade on other DEXs
         println!("Borrowed {} tokens of currency {:?}", self.amount, self.currency);
         
-        // 3. 偿还代币
+        // 3. Repay tokens
         pool_manager.settle(self.recipient, U256::from(self.amount))?;
         
         println!("Repaid {} tokens of currency {:?}", self.amount, self.currency);
@@ -106,8 +106,8 @@ impl SimpleFlashLoanExample {
     }
 }
 
-/// 通用 Flash Loan 回调实现
-/// 这个结构包装了 FlashLoanExecutor，用于执行 Flash Loan 操作
+/// Generic Flash Loan callback implementation
+/// This structure wraps FlashLoanExecutor for executing Flash Loan operations
 pub struct FlashLoanCallbackWrapper {
     executor: FlashLoanExecutor,
 }
@@ -120,30 +120,30 @@ impl FlashLoanCallbackWrapper {
 
 impl FlashLoanCallback for FlashLoanCallbackWrapper {
     fn unlock_callback(&mut self, _data: &[u8]) -> Result<Vec<u8>, FlashLoanError> {
-        // 直接返回成功，因为实际操作会在外部处理
+        // Directly return success, as actual operations will be handled externally
         Ok(Vec::new())
     }
 }
 
-/// 套利 Flash Loan 示例
-/// 这个示例展示了如何使用 Flash Loan 进行套利
+/// Arbitrage Flash Loan example
+/// This example demonstrates how to use Flash Loans for arbitrage
 pub struct ArbitrageFlashLoanExample {
-    /// 借用的代币
+    /// Borrowed token
     borrow_currency: Currency,
-    /// 借用的金额
+    /// Borrowed amount
     borrow_amount: u128,
-    /// 目标代币
+    /// Target token
     target_currency: Currency,
-    /// 接收代币的地址
+    /// Token recipient address
     recipient: Address,
-    /// 代币交互器
+    /// Token interactor
     token_interactor: Option<Arc<TokenInteractor>>,
-    /// Flash Loan 执行器
+    /// Flash Loan executor
     executor: FlashLoanExecutor,
 }
 
 impl ArbitrageFlashLoanExample {
-    /// 创建一个新的套利 Flash Loan 示例
+    /// Create a new arbitrage Flash Loan example
     pub fn new(
         borrow_currency: Currency,
         borrow_amount: u128,
@@ -164,27 +164,27 @@ impl ArbitrageFlashLoanExample {
         }
     }
     
-    /// 设置代币交互器
+    /// Set token interactor
     pub fn with_token_interactor(mut self, token_interactor: Arc<TokenInteractor>) -> Self {
         self.token_interactor = Some(token_interactor);
         self
     }
     
-    /// 执行套利 Flash Loan
+    /// Execute arbitrage Flash Loan
     pub fn execute(&self, pool_manager: &mut PoolManager) -> Result<(), FlashLoanError> {
-        // 1. 借用代币
+        // 1. Borrow tokens
         pool_manager.take(self.borrow_currency, self.recipient, self.borrow_amount)?;
         
-        // 2. 执行套利逻辑
+        // 2. Execute arbitrage logic
         println!("Borrowed {} tokens of currency {:?}", self.borrow_amount, self.borrow_currency);
         println!("Executing arbitrage between {:?} and {:?}", self.borrow_currency, self.target_currency);
         
-        // 模拟套利操作：
-        // - 在 DEX A 上用借来的代币交换目标代币
-        // - 在 DEX B 上用目标代币换回原代币，获得更多的原代币
-        // - 偿还借来的代币，保留利润
+        // Simulate arbitrage operations:
+        // - Exchange borrowed tokens for target tokens on DEX A
+        // - Exchange target tokens back to original tokens on DEX B, getting more original tokens
+        // - Repay borrowed tokens, keeping the profit
         
-        // 3. 偿还代币
+        // 3. Repay tokens
         pool_manager.settle(self.recipient, U256::from(self.borrow_amount))?;
         
         println!("Repaid {} tokens of currency {:?}", self.borrow_amount, self.borrow_currency);
@@ -194,19 +194,19 @@ impl ArbitrageFlashLoanExample {
     }
 }
 
-/// 多币种 Flash Loan 示例
-/// 这个示例展示了如何同时借用多种代币
+/// Multi-token Flash Loan example
+/// This example demonstrates how to borrow multiple token types simultaneously
 pub struct MultiTokenFlashLoanExample {
-    /// 借用的代币和金额
+    /// Borrowed tokens and amounts
     loans: Vec<(Currency, u128)>,
-    /// 接收代币的地址
+    /// Token recipient address
     recipient: Address,
-    /// Flash Loan 执行器
+    /// Flash Loan executor
     executor: FlashLoanExecutor,
 }
 
 impl MultiTokenFlashLoanExample {
-    /// 创建一个新的多币种 Flash Loan 示例
+    /// Create a new multi-token Flash Loan example
     pub fn new(
         recipient: Address,
     ) -> Self {
@@ -217,7 +217,7 @@ impl MultiTokenFlashLoanExample {
         }
     }
     
-    /// 添加一个借贷
+    /// Add a loan
     pub fn add_loan(mut self, currency: Currency, amount: u128) -> Self {
         self.loans.push((currency, amount));
         self.executor.add_take(currency, self.recipient, amount);
@@ -225,18 +225,18 @@ impl MultiTokenFlashLoanExample {
         self
     }
     
-    /// 执行多币种 Flash Loan
+    /// Execute multi-token Flash Loan
     pub fn execute(&self, pool_manager: &mut PoolManager) -> Result<(), FlashLoanError> {
-        // 1. 借用所有代币
+        // 1. Borrow all tokens
         for (currency, amount) in &self.loans {
             pool_manager.take(*currency, self.recipient, *amount)?;
             println!("Borrowed {} tokens of currency {:?}", amount, currency);
         }
         
-        // 2. 执行复杂的操作，例如多币种套利或流动性提供
+        // 2. Execute complex operations, such as multi-token arbitrage or liquidity provision
         println!("Executing multi-token operation");
         
-        // 3. 偿还所有代币
+        // 3. Repay all tokens
         for (currency, amount) in &self.loans {
             pool_manager.settle(self.recipient, U256::from(*amount))?;
             println!("Repaid {} tokens of currency {:?}", amount, currency);

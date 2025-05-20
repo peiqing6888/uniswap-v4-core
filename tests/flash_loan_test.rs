@@ -15,21 +15,21 @@ use std::sync::Arc;
 #[test]
 fn test_simple_flash_loan() {
     println!("Creating pool manager");
-    // 创建池子管理器
+    // Create pool manager
     let mut pool_manager = PoolManager::new();
     
-    // 创建一个代币地址
+    // Create a token address
     let token_address = Address::from_low_u64_be(1);
     let currency = Currency::from_address(token_address);
     
-    // 创建接收地址
+    // Create recipient address
     let recipient = Address::from_low_u64_be(2);
     
-    // 借用金额
+    // Borrow amount
     let amount = 1000;
     
     println!("Creating flash loan example");
-    // 创建 Flash Loan 示例
+    // Create Flash Loan example
     let flash_loan = SimpleFlashLoanExample::new(
         currency,
         amount,
@@ -37,7 +37,7 @@ fn test_simple_flash_loan() {
     );
     
     println!("Executing flash loan");
-    // 执行 Flash Loan
+    // Execute Flash Loan
     let result = flash_loan.execute(&mut pool_manager);
     println!("Flash loan result: {:?}", result);
     assert!(result.is_ok(), "Flash loan should succeed");
@@ -45,23 +45,23 @@ fn test_simple_flash_loan() {
 
 #[test]
 fn test_arbitrage_flash_loan() {
-    // 创建池子管理器
+    // Create pool manager
     let mut pool_manager = PoolManager::new();
     
-    // 创建代币地址
+    // Create token addresses
     let borrow_token = Address::from_low_u64_be(1);
     let target_token = Address::from_low_u64_be(2);
     
     let borrow_currency = Currency::from_address(borrow_token);
     let target_currency = Currency::from_address(target_token);
     
-    // 创建接收地址
+    // Create recipient address
     let recipient = Address::from_low_u64_be(3);
     
-    // 借用金额
+    // Borrow amount
     let amount = 1000;
     
-    // 创建套利 Flash Loan 示例
+    // Create arbitrage Flash Loan example
     let flash_loan = ArbitrageFlashLoanExample::new(
         borrow_currency,
         amount,
@@ -69,17 +69,17 @@ fn test_arbitrage_flash_loan() {
         recipient,
     );
     
-    // 执行套利 Flash Loan
+    // Execute arbitrage Flash Loan
     let result = flash_loan.execute(&mut pool_manager);
     assert!(result.is_ok(), "Arbitrage flash loan should succeed");
 }
 
 #[test]
 fn test_multi_token_flash_loan() {
-    // 创建池子管理器
+    // Create pool manager
     let mut pool_manager = PoolManager::new();
     
-    // 创建代币地址
+    // Create token addresses
     let token1 = Address::from_low_u64_be(1);
     let token2 = Address::from_low_u64_be(2);
     let token3 = Address::from_low_u64_be(3);
@@ -88,10 +88,10 @@ fn test_multi_token_flash_loan() {
     let currency2 = Currency::from_address(token2);
     let currency3 = Currency::from_address(token3);
     
-    // 创建接收地址
+    // Create recipient address
     let recipient = Address::from_low_u64_be(4);
     
-    // 创建多币种 Flash Loan 示例
+    // Create multi-token Flash Loan example
     let flash_loan = MultiTokenFlashLoanExample::new(
         recipient,
     )
@@ -99,7 +99,7 @@ fn test_multi_token_flash_loan() {
     .add_loan(currency2, 2000)
     .add_loan(currency3, 3000);
     
-    // 执行多币种 Flash Loan
+    // Execute multi-token Flash Loan
     let result = flash_loan.execute(&mut pool_manager);
     assert!(result.is_ok(), "Multi-token flash loan should succeed");
 } 

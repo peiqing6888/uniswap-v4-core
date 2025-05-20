@@ -17,7 +17,7 @@ use crate::core::{
     },
 };
 
-/// 简单的池子键
+/// Simple pool key
 #[derive(Hash, Eq, PartialEq, Clone, Debug)]
 pub struct PoolKey {
     pub token0: Address,

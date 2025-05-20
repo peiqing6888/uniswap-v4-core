@@ -13,67 +13,67 @@ use std::sync::Arc;
 fn main() {
     println!("Uniswap V4 Flash Loan Examples");
     
-    // 创建池子管理器
+    // Create pool manager
     let mut pool_manager = PoolManager::new();
     
-    // 运行简单的 Flash Loan 示例
+    // Run simple Flash Loan example
     run_simple_flash_loan(&mut pool_manager);
     
-    // 运行套利 Flash Loan 示例
+    // Run arbitrage Flash Loan example
     run_arbitrage_flash_loan(&mut pool_manager);
     
-    // 运行多币种 Flash Loan 示例
+    // Run multi-token Flash Loan example
     run_multi_token_flash_loan(&mut pool_manager);
 }
 
 fn run_simple_flash_loan(pool_manager: &mut PoolManager) {
-    println!("\n=== 简单 Flash Loan 示例 ===");
+    println!("\n=== Simple Flash Loan Example ===");
     
-    // 创建一个代币地址
+    // Create a token address
     let token_address = Address::from_low_u64_be(1);
     let currency = Currency::from_address(token_address);
     
-    // 创建接收地址
+    // Create recipient address
     let recipient = Address::from_low_u64_be(2);
     
-    // 借用金额
+    // Borrow amount
     let amount = 1000;
     
-    println!("借用 {} 个代币 {:?} 到地址 {:?}", amount, currency, recipient);
+    println!("Borrowing {} tokens of currency {:?} to address {:?}", amount, currency, recipient);
     
-    // 创建 Flash Loan 示例
+    // Create Flash Loan example
     let flash_loan = SimpleFlashLoanExample::new(
         currency,
         amount,
         recipient,
     );
     
-    // 执行 Flash Loan
+    // Execute Flash Loan
     match flash_loan.execute(pool_manager) {
-        Ok(_) => println!("Flash loan 成功执行!"),
-        Err(e) => println!("Flash loan 失败: {:?}", e),
+        Ok(_) => println!("Flash loan executed successfully!"),
+        Err(e) => println!("Flash loan failed: {:?}", e),
     }
 }
 
 fn run_arbitrage_flash_loan(pool_manager: &mut PoolManager) {
-    println!("\n=== 套利 Flash Loan 示例 ===");
+    println!("\n=== Arbitrage Flash Loan Example ===");
     
-    // 创建代币地址
+    // Create token addresses
     let borrow_token = Address::from_low_u64_be(1);
     let target_token = Address::from_low_u64_be(2);
     
     let borrow_currency = Currency::from_address(borrow_token);
     let target_currency = Currency::from_address(target_token);
     
-    // 创建接收地址
+    // Create recipient address
     let recipient = Address::from_low_u64_be(3);
     
-    // 借用金额
+    // Borrow amount
     let amount = 1000;
     
-    println!("使用代币 {:?} 进行套利，目标代币 {:?}", borrow_currency, target_currency);
+    println!("Using currency {:?} for arbitrage with target currency {:?}", borrow_currency, target_currency);
     
-    // 创建套利 Flash Loan 示例
+    // Create arbitrage Flash Loan example
     let flash_loan = ArbitrageFlashLoanExample::new(
         borrow_currency,
         amount,
@@ -81,17 +81,17 @@ fn run_arbitrage_flash_loan(pool_manager: &mut PoolManager) {
         recipient,
     );
     
-    // 执行套利 Flash Loan
+    // Execute arbitrage Flash Loan
     match flash_loan.execute(pool_manager) {
-        Ok(_) => println!("套利 Flash loan 成功执行!"),
-        Err(e) => println!("套利 Flash loan 失败: {:?}", e),
+        Ok(_) => println!("Arbitrage Flash loan executed successfully!"),
+        Err(e) => println!("Arbitrage Flash loan failed: {:?}", e),
     }
 }
 
 fn run_multi_token_flash_loan(pool_manager: &mut PoolManager) {
-    println!("\n=== 多币种 Flash Loan 示例 ===");
+    println!("\n=== Multi-token Flash Loan Example ===");
     
-    // 创建代币地址
+    // Create token addresses
     let token1 = Address::from_low_u64_be(1);
     let token2 = Address::from_low_u64_be(2);
     let token3 = Address::from_low_u64_be(3);
@@ -100,12 +100,12 @@ fn run_multi_token_flash_loan(pool_manager: &mut PoolManager) {
     let currency2 = Currency::from_address(token2);
     let currency3 = Currency::from_address(token3);
     
-    // 创建接收地址
+    // Create recipient address
     let recipient = Address::from_low_u64_be(4);
     
-    println!("借用多种代币进行操作");
+    println!("Borrowing multiple tokens for operations");
     
-    // 创建多币种 Flash Loan 示例
+    // Create multi-token Flash Loan example
     let flash_loan = MultiTokenFlashLoanExample::new(
         recipient,
     )
@@ -113,9 +113,9 @@ fn run_multi_token_flash_loan(pool_manager: &mut PoolManager) {
     .add_loan(currency2, 2000)
     .add_loan(currency3, 3000);
     
-    // 执行多币种 Flash Loan
+    // Execute multi-token Flash Loan
     match flash_loan.execute(pool_manager) {
-        Ok(_) => println!("多币种 Flash loan 成功执行!"),
-        Err(e) => println!("多币种 Flash loan 失败: {:?}", e),
+        Ok(_) => println!("Multi-token Flash loan executed successfully!"),
+        Err(e) => println!("Multi-token Flash loan failed: {:?}", e),
     }
 } 

@@ -1,5 +1,4 @@
-use std::cmp::min;
-use primitive_types::{U256, U512};
+use primitive_types::U256;
 use num_traits::Zero;
 
 use crate::core::math::{
@@ -7,7 +6,6 @@ use crate::core::math::{
     SqrtPriceMath,
     SwapMath,
     types::{SqrtPrice, Liquidity, U256Ext},
-    Result as MathResult,
 };
 
 use super::{
@@ -118,7 +116,7 @@ impl Pool {
 
         // Update the ticks and check liquidity bounds
         if liquidity_delta != 0 {
-            let (flipped_lower, liquidity_gross_after_lower) = self.tick_manager.update_tick(
+            let (_flipped_lower, liquidity_gross_after_lower) = self.tick_manager.update_tick(
                 tick_lower,
                 liquidity_delta,
                 self.fee_growth_global_0_x128,
@@ -127,7 +125,7 @@ impl Pool {
                 &self.slot0,
             )?;
 
-            let (flipped_upper, liquidity_gross_after_upper) = self.tick_manager.update_tick(
+            let (_flipped_upper, liquidity_gross_after_upper) = self.tick_manager.update_tick(
                 tick_upper,
                 liquidity_delta,
                 self.fee_growth_global_0_x128,
@@ -409,10 +407,16 @@ impl Pool {
             if sqrt_price_x96.to_u256() == sqrt_price_next_x96_u256 {
                 if initialized {
                     // Handle tick crossing
-                    let (fee_growth_global_0_x128, fee_growth_global_1_x128) = if zero_for_one {
-                        (fee_growth_global_x128, self.fee_growth_global_1_x128)
+                    let (_fee_growth_global_0_x128, _fee_growth_global_1_x128) = if zero_for_one {
+                        (
+                            fee_growth_global_x128,
+                            self.fee_growth_global_1_x128,
+                        )
                     } else {
-                        (self.fee_growth_global_0_x128, fee_growth_global_x128)
+                        (
+                            self.fee_growth_global_0_x128,
+                            fee_growth_global_x128,
+                        )
                     };
 
                     // Simulate crossTick function
@@ -451,14 +455,14 @@ impl Pool {
         }
 
         // Calculate final balance delta
-        let balance_delta = if (zero_for_one != (amount_specified < 0)) {
+        let balance_delta = if zero_for_one != (amount_specified < 0) {
             BalanceDelta::new(
                 amount_calculated,
-                (amount_specified - amount_specified_remaining),
+                amount_specified - amount_specified_remaining,
             )
         } else {
             BalanceDelta::new(
-                (amount_specified - amount_specified_remaining),
+                amount_specified - amount_specified_remaining,
                 amount_calculated,
             )
         };

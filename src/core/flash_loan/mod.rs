@@ -14,7 +14,6 @@ pub use examples::*;
 // This module provides the implementation of flash loans for Uniswap V4
 
 use ethers::types::{Address, U256};
-use std::sync::Arc;
 
 /// Flash loan manager for the Uniswap V4 core
 pub struct FlashLoanManager {

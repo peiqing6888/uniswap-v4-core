@@ -1,9 +1,8 @@
 use std::collections::HashMap;
-use std::collections::BTreeMap;
 use num_traits::Zero;
 use primitive_types::U256;
 
-use crate::core::math::types::{Liquidity, SqrtPrice};
+use crate::core::math::types::Liquidity;
 use super::{Result, StateError, types::{Position, BalanceDelta}};
 
 /// Key for identifying a position

@@ -1,5 +1,4 @@
-use primitive_types::{U256, U512};
-use crate::core::math::types::Q96;
+use primitive_types::U256;
 
 /// Contains 512-bit math functions
 /// Facilitates multiplication and division that can have overflow of an intermediate value without any loss of precision

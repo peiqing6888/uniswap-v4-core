@@ -7,8 +7,7 @@ use uniswap_v4_core::core::{
     },
     PoolManager,
 };
-use ethers::types::{Address, U256};
-use std::sync::Arc;
+use ethers::types::Address;
 
 fn main() {
     println!("Uniswap V4 Flash Loan Examples");

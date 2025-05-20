@@ -9,8 +9,7 @@ use uniswap_v4_core::{
         PoolManager,
     },
 };
-use ethers::types::{Address, U256};
-use std::sync::Arc;
+use ethers::types::Address;
 
 #[test]
 fn test_simple_flash_loan() {

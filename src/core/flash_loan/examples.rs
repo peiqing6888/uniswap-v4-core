@@ -7,7 +7,6 @@ use crate::core::flash_loan::{
 use crate::core::pool_manager::PoolManager;
 use crate::bindings::token::TokenInteractor;
 use std::sync::Arc;
-use std::cell::RefCell;
 
 /// Simple Flash Loan executor
 /// Used to execute Flash Loan operations, avoiding recursive borrowing issues
@@ -58,8 +57,6 @@ pub struct SimpleFlashLoanExample {
     recipient: Address,
     /// Token interactor
     token_interactor: Option<Arc<TokenInteractor>>,
-    /// Flash Loan executor
-    executor: FlashLoanExecutor,
 }
 
 impl SimpleFlashLoanExample {
@@ -69,16 +66,11 @@ impl SimpleFlashLoanExample {
         amount: u128,
         recipient: Address,
     ) -> Self {
-        let mut executor = FlashLoanExecutor::new();
-        executor.add_take(currency, recipient, amount);
-        executor.add_settle(recipient, U256::from(amount));
-        
         Self {
             currency,
             amount,
             recipient,
             token_interactor: None,
-            executor,
         }
     }
     
@@ -109,7 +101,7 @@ impl SimpleFlashLoanExample {
 /// Generic Flash Loan callback implementation
 /// This structure wraps FlashLoanExecutor for executing Flash Loan operations
 pub struct FlashLoanCallbackWrapper {
-    executor: FlashLoanExecutor,
+    pub executor: FlashLoanExecutor,
 }
 
 impl FlashLoanCallbackWrapper {
@@ -138,8 +130,6 @@ pub struct ArbitrageFlashLoanExample {
     recipient: Address,
     /// Token interactor
     token_interactor: Option<Arc<TokenInteractor>>,
-    /// Flash Loan executor
-    executor: FlashLoanExecutor,
 }
 
 impl ArbitrageFlashLoanExample {
@@ -150,17 +140,12 @@ impl ArbitrageFlashLoanExample {
         target_currency: Currency,
         recipient: Address,
     ) -> Self {
-        let mut executor = FlashLoanExecutor::new();
-        executor.add_take(borrow_currency, recipient, borrow_amount);
-        executor.add_settle(recipient, U256::from(borrow_amount));
-        
         Self {
             borrow_currency,
             borrow_amount,
             target_currency,
             recipient,
             token_interactor: None,
-            executor,
         }
     }
     

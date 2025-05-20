@@ -1,4 +1,4 @@
-use primitive_types::{U256, U512};
+use primitive_types::U256;
 use std::ops::{Add, Sub, Mul, Div};
 use num_traits::Zero;
 

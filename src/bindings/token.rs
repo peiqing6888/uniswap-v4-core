@@ -1,9 +1,9 @@
 use ethers::{
-    contract::{abigen, Contract},
+    contract::abigen,
     providers::{Http, Provider},
     types::{Address, U256, TransactionRequest},
     core::types::TransactionReceipt,
-    signers::{LocalWallet, Signer},
+    signers::LocalWallet,
     middleware::{SignerMiddleware, Middleware},
 };
 use std::sync::Arc;
@@ -23,7 +23,7 @@ abigen!(
 /// TokenInteractor provides functionality to interact with ERC20 tokens
 pub struct TokenInteractor {
     provider: Arc<Provider<Http>>,
-    signer: Option<LocalWallet>,
+    _signer: Option<LocalWallet>,
     signed_provider: Option<Arc<SignerMiddleware<Arc<Provider<Http>>, LocalWallet>>>,
 }
 
@@ -32,7 +32,7 @@ impl TokenInteractor {
     pub fn new(provider: Arc<Provider<Http>>) -> Self {
         Self {
             provider,
-            signer: None,
+            _signer: None,
             signed_provider: None,
         }
     }
@@ -42,7 +42,7 @@ impl TokenInteractor {
         let signed_provider = Arc::new(SignerMiddleware::new(provider.clone(), signer.clone()));
         Self {
             provider,
-            signer: Some(signer),
+            _signer: Some(signer),
             signed_provider: Some(signed_provider),
         }
     }
@@ -87,7 +87,7 @@ impl TokenInteractor {
     }
     
     /// Send a transaction and wait for it to be mined
-    pub async fn send_transaction(&self, token_address: Address, tx_data: TransactionRequest) -> Result<Option<TransactionReceipt>, String> {
+    pub async fn send_transaction(&self, _token_address: Address, tx_data: TransactionRequest) -> Result<Option<TransactionReceipt>, String> {
         let signed_provider = self.signed_provider.as_ref().ok_or("No signer provided")?;
         
         signed_provider.send_transaction(tx_data, None)

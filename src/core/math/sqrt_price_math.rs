@@ -1,6 +1,6 @@
 use primitive_types::U256;
 use crate::core::math::{
-    types::{Q64x96, SqrtPrice, Liquidity, Q96},
+    types::{SqrtPrice, Liquidity, Q96},
     full_math::FullMath,
     MathError,
     Result,

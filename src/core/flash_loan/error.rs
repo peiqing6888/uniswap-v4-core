@@ -1,5 +1,3 @@
-use ethers::types::Address;
-use crate::core::flash_loan::currency::Currency;
 
 /// Errors that can occur during flash loan operations
 #[derive(Debug, thiserror::Error)]

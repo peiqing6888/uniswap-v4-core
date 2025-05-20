@@ -28,7 +28,7 @@ impl TickManager {
         liquidity_delta: i128,
         fee_growth_global_0_x128: U256,
         fee_growth_global_1_x128: U256,
-        upper: bool,
+        _upper: bool,
         slot0: &Slot0,
     ) -> Result<(bool, u128)> {
         let tick_info = self.ticks.entry(tick).or_default();
@@ -140,7 +140,7 @@ impl TickManager {
         fee_growth_global_1_x128: U256,
     ) -> (U256, U256) {
         let lower = self.ticks.get(&tick_lower).cloned().unwrap_or_default();
-        let upper = self.ticks.get(&tick_upper).cloned().unwrap_or_default();
+        let _upper = self.ticks.get(&tick_upper).cloned().unwrap_or_default();
 
         let fee_growth_below_0_x128;
         let fee_growth_below_1_x128;
@@ -155,11 +155,11 @@ impl TickManager {
         let fee_growth_above_0_x128;
         let fee_growth_above_1_x128;
         if tick_current < tick_upper {
-            fee_growth_above_0_x128 = upper.fee_growth_outside_0_x128;
-            fee_growth_above_1_x128 = upper.fee_growth_outside_1_x128;
+            fee_growth_above_0_x128 = _upper.fee_growth_outside_0_x128;
+            fee_growth_above_1_x128 = _upper.fee_growth_outside_1_x128;
         } else {
-            fee_growth_above_0_x128 = fee_growth_global_0_x128.saturating_sub(upper.fee_growth_outside_0_x128);
-            fee_growth_above_1_x128 = fee_growth_global_1_x128.saturating_sub(upper.fee_growth_outside_1_x128);
+            fee_growth_above_0_x128 = fee_growth_global_0_x128.saturating_sub(_upper.fee_growth_outside_0_x128);
+            fee_growth_above_1_x128 = fee_growth_global_1_x128.saturating_sub(_upper.fee_growth_outside_1_x128);
         }
 
         (

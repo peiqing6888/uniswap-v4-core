@@ -147,9 +147,9 @@ mod tests {
     
     // Test for flash loan functionality
     struct TestFlashLoanCallback {
-        currency: Currency,
-        amount: u128,
-        address: Address,
+        _currency: Currency,
+        _amount: u128,
+        _address: Address,
     }
     
     impl FlashLoanCallback for TestFlashLoanCallback {
@@ -170,9 +170,9 @@ mod tests {
         let amount = 1000;
         
         let mut callback = TestFlashLoanCallback {
-            currency,
-            amount,
-            address,
+            _currency: currency,
+            _amount: amount,
+            _address: address,
         };
         
         // Execute flash loan

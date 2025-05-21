@@ -167,52 +167,46 @@ The hook system enables customization of pool behavior:
 
 GPL-2.0-or-later
 
-## 主要特性
+## Key Features
 
-### 核心功能
-- 可定制的流动性池
-- 灵活的费用结构
-- 虚拟订单模型（Concentrated Liquidity）
-- Hook系统
-- 闪电贷
+### Core Features
 
-### 新增功能
-#### 协议费用系统
-Rust实现包含了完整的协议费用系统，支持：
-- 协议费用的设置和收集
-- 针对不同交易方向（零对一和一对零）的独立费用设置
-- 与LP费用的整合
-- 协议费用控制器和管理
-- 费用计算和分配机制
+- Customizable liquidity pools
+- Flexible fee structure
+- Concentrated Liquidity model
+- Hook system
+- Flash loans
 
-#### 增强的Hook系统
-增强的Hook系统支持：
-- 返回Delta值的Hook，允许Hook直接影响交易结果
-- Hook标志验证，确保Hook地址格式符合规范
-- Hook注册表管理
-- 示例Hook实现：
-  - 动态费用Hook - 根据市场波动性调整费用
-  - TWAP预言机Hook - 跟踪时间加权平均价格
-  - 流动性挖矿Hook - 奖励流动性提供者
-  - 交易量折扣Hook - 基于交易量提供费用折扣
+### Added Features
 
-#### ERC6909令牌标准
-Rust实现包含了ERC6909多代币标准，支持：
-- 多代币管理
-- 流动性令牌
-- ERC6909Claims扩展 - 支持令牌声明功能
-- 与池状态的集成，用于管理流动性令牌
+#### Protocol Fee System
 
-## 开发状态
-本项目目前处于开发阶段，已实现的功能包括：
-- 基本的池和状态管理
-- 数学库
-- Hook系统（基础和增强功能）
-- 协议费用系统
-- ERC6909令牌标准
-- 闪电贷
+The Rust implementation includes a complete protocol fee system that supports:
 
-即将实现的功能：
-- 完整的池管理器
-- 更多的Hook示例
-- 全面的测试覆盖
+- Setting and collecting protocol fees
+- Independent fee settings for different trading directions (zero-for-one and one-for-zero)
+- Integration with LP fees
+- Protocol fee controller and management
+- Fee calculation and distribution mechanisms
+
+#### Enhanced Hook System
+
+The enhanced Hook system supports:
+
+- Hooks that return Delta values, allowing hooks to directly influence transaction results
+- Hook flag validation, ensuring hook addresses comply with standards
+- Hook registry management
+- Example Hook implementations:
+  - Dynamic Fee Hook - Adjusts fees based on market volatility
+  - TWAP Oracle Hook - Tracks time-weighted average prices
+  - Liquidity Mining Hook - Rewards liquidity providers
+  - Volume Discount Hook - Provides fee discounts based on trading volume
+
+#### ERC6909 Token Standard
+
+The Rust implementation includes the ERC6909 multi-token standard, supporting:
+
+- Multi-token management
+- Liquidity tokens
+- ERC6909Claims extension - Supports token claim functionality
+- Integration with pool state for managing liquidity tokens

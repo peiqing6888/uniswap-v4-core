@@ -7,6 +7,30 @@ description = "Core contracts for the Uniswap v4 protocol"
 license = "BUSL-1.1"
 publish = false
 
+[lib]
+name = "uniswap_v4_core"
+path = "src/lib.rs"
+
+[[test]]
+name = "uniswap_v4_features"
+path = "tests/integration/uniswap_v4_features_test.rs"
+
+[[test]]
+name = "flash_loan"
+path = "tests/flash_loan_test.rs"
+
+[[test]]
+name = "hook_test"
+path = "tests/unit/hook_test.rs"
+
+[[test]]
+name = "protocol_fee_test"
+path = "tests/unit/protocol_fee_test.rs"
+
+[[test]]
+name = "erc6909_test"
+path = "tests/unit/erc6909_test.rs"
+
 [dependencies]
 # Ethereum and Web3 related
 ethers = { version = "2.0", features = ["abigen", "ws", "rustls", "etherscan"] }

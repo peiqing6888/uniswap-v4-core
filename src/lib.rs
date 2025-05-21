@@ -7,17 +7,21 @@ pub mod core {
     pub mod state;
     pub mod flash_loan;
     pub mod pool_manager;
+    pub mod hooks;
     
     pub use pool_manager::PoolManager;
     pub use flash_loan::*;
+    pub use flash_loan::currency::Currency;
 }
 
 pub mod hooks;
 pub mod fees;
 pub mod bindings;
+pub mod tokens;
 
 // Re-export commonly used types
 pub use ethers;
+pub use core::flash_loan::currency::Currency;
 
 /// Common error types for the crate
 #[derive(Debug, thiserror::Error)]

@@ -6,12 +6,14 @@ pub mod lock;
 pub mod callback;
 pub mod error;
 pub mod examples;
+pub mod types;
 
 pub use currency::*;
 pub use lock::*;
 pub use callback::*;
 pub use error::*;
 pub use examples::*;
+pub use types::*;
 
 // Constants
 pub const ZERO_ADDRESS: Address = Address::zero();

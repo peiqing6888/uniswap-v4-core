@@ -3,7 +3,7 @@ use crate::core::{
     math::types::{SqrtPrice, Liquidity},
 };
 
-use super::{BeforeHookResult, AfterHookResult};
+use super::{BeforeHookResult, AfterHookResult, BeforeSwapDelta, HookResult};
 
 /// Key identifying a pool
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
@@ -46,6 +46,62 @@ pub struct SwapParams {
     pub zero_for_one: bool,
     /// The price limit for the swap
     pub sqrt_price_limit_x96: SqrtPrice,
+}
+
+/// Extended hook interface with returns delta methods
+pub trait HookWithReturns: Hook {
+    /// Called before a swap, can return a delta
+    fn before_swap_with_delta(
+        &mut self,
+        sender: [u8; 20],
+        key: &PoolKey,
+        params: &SwapParams,
+        hook_data: &[u8],
+    ) -> StateResult<BeforeSwapDelta> {
+        // Default implementation returns zero delta
+        Ok(BeforeSwapDelta::default())
+    }
+    
+    /// Called after a swap, can return a delta
+    fn after_swap_with_delta(
+        &mut self,
+        sender: [u8; 20],
+        key: &PoolKey,
+        params: &SwapParams,
+        delta: &BalanceDelta,
+        hook_data: &[u8],
+    ) -> StateResult<i128> {
+        // Default implementation returns zero delta
+        Ok(0)
+    }
+    
+    /// Called after liquidity is added, can return a delta
+    fn after_add_liquidity_with_delta(
+        &mut self,
+        sender: [u8; 20],
+        key: &PoolKey,
+        params: &ModifyLiquidityParams,
+        delta: &BalanceDelta,
+        fees_accrued: &BalanceDelta,
+        hook_data: &[u8],
+    ) -> StateResult<BalanceDelta> {
+        // Default implementation returns zero delta
+        Ok(BalanceDelta { amount0: 0, amount1: 0 })
+    }
+    
+    /// Called after liquidity is removed, can return a delta
+    fn after_remove_liquidity_with_delta(
+        &mut self,
+        sender: [u8; 20],
+        key: &PoolKey,
+        params: &ModifyLiquidityParams,
+        delta: &BalanceDelta,
+        fees_accrued: &BalanceDelta,
+        hook_data: &[u8],
+    ) -> StateResult<BalanceDelta> {
+        // Default implementation returns zero delta
+        Ok(BalanceDelta { amount0: 0, amount1: 0 })
+    }
 }
 
 /// Trait defining hooks for Uniswap V4 pools

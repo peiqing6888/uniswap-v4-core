@@ -1,5 +1,6 @@
 use primitive_types::U256;
 use num_traits::Zero;
+use ethers::types::Address;
 
 use crate::core::math::{
     TickMath,
@@ -16,6 +17,9 @@ use super::{
     position::{PositionManager, PositionKey},
 };
 
+// 添加对ERC6909令牌的引用
+use crate::tokens::erc6909::{LiquidityToken, ERC6909Error};
+
 /// Pool state and operations
 pub struct Pool {
     /// The most frequently accessed state
@@ -30,6 +34,8 @@ pub struct Pool {
     pub tick_manager: TickManager,
     /// The position manager
     pub position_manager: PositionManager,
+    /// Liquidity token for tracking positions
+    pub liquidity_token: Option<LiquidityToken>,
 }
 
 impl Pool {
@@ -47,6 +53,7 @@ impl Pool {
             liquidity: Liquidity::new(0),
             tick_manager: TickManager::new(),
             position_manager: PositionManager::new(),
+            liquidity_token: None,
         }
     }
 
@@ -489,6 +496,116 @@ impl Pool {
 
         // Return the balance delta (negative because tokens are being donated to the pool)
         Ok(BalanceDelta::new(-(amount0 as i128), -(amount1 as i128)))
+    }
+
+    /// 初始化流动性令牌
+    pub fn initialize_liquidity_token(&mut self, name: String, symbol: String) {
+        self.liquidity_token = Some(LiquidityToken::new(name, symbol));
+    }
+    
+    /// 获取流动性令牌引用
+    pub fn get_liquidity_token(&self) -> Option<&LiquidityToken> {
+        self.liquidity_token.as_ref()
+    }
+    
+    /// 获取可变流动性令牌引用
+    pub fn get_liquidity_token_mut(&mut self) -> Option<&mut LiquidityToken> {
+        self.liquidity_token.as_mut()
+    }
+    
+    /// 铸造流动性令牌
+    pub fn mint_liquidity_tokens(
+        &mut self,
+        owner: Address,
+        pool_id: U256,
+        amount: U256,
+    ) -> Result<()> {
+        if let Some(ref mut token) = self.liquidity_token {
+            token.mint_liquidity_token(owner, pool_id, amount)
+                .map_err(|_| StateError::NoLiquidityToReceiveFees)?;
+            Ok(())
+        } else {
+            Err(StateError::PoolNotInitialized)
+        }
+    }
+    
+    /// 销毁流动性令牌
+    pub fn burn_liquidity_tokens(
+        &mut self,
+        owner: Address,
+        pool_id: U256,
+        amount: U256,
+    ) -> Result<()> {
+        if let Some(ref mut token) = self.liquidity_token {
+            token.burn_liquidity_token(owner, pool_id, amount)
+                .map_err(|_| StateError::NoLiquidityToReceiveFees)?;
+            Ok(())
+        } else {
+            Err(StateError::PoolNotInitialized)
+        }
+    }
+    
+    /// 转移流动性令牌
+    pub fn transfer_liquidity_tokens(
+        &mut self,
+        from: Address,
+        to: Address,
+        pool_id: U256,
+        amount: U256,
+    ) -> Result<()> {
+        if let Some(ref mut token) = self.liquidity_token {
+            token.transfer(from, to, pool_id, amount)
+                .map_err(|_| StateError::NoLiquidityToReceiveFees)?;
+            Ok(())
+        } else {
+            Err(StateError::PoolNotInitialized)
+        }
+    }
+    
+    /// 查询流动性令牌余额
+    pub fn get_liquidity_token_balance(
+        &self,
+        owner: Address,
+        pool_id: U256,
+    ) -> Result<U256> {
+        if let Some(ref token) = self.liquidity_token {
+            Ok(token.balance_of(owner, pool_id))
+        } else {
+            Err(StateError::PoolNotInitialized)
+        }
+    }
+    
+    /// 对流动性令牌进行授权
+    pub fn approve_liquidity_tokens(
+        &mut self,
+        owner: Address,
+        spender: Address,
+        pool_id: U256,
+        amount: U256,
+    ) -> Result<()> {
+        if let Some(ref mut token) = self.liquidity_token {
+            token.approve(owner, spender, pool_id, amount)
+                .map_err(|_| StateError::NoLiquidityToReceiveFees)?;
+            Ok(())
+        } else {
+            Err(StateError::PoolNotInitialized)
+        }
+    }
+    
+    /// 设置操作员权限
+    pub fn set_liquidity_token_operator(
+        &mut self,
+        owner: Address,
+        operator: Address,
+        approved: bool,
+    ) -> Result<()> {
+        if let Some(ref mut token) = self.liquidity_token {
+            token.set_operator(owner, operator, approved)
+                .map_err(|_| StateError::NoLiquidityToReceiveFees)?;
+            Ok(())
+        } else {
+            Err(StateError::PoolNotInitialized)
+        }
     }
 }
 

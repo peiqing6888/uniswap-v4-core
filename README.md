@@ -81,15 +81,58 @@ uniswap-v4-core/
    ```bash
    forge install
    ```
-3. Run tests:
 
-   ```bash
-   # Run Rust tests
-   cargo test
+## Running Examples and Tests
 
-   # Run Solidity tests
-   forge test
-   ```
+### Running Examples
+
+To run the examples demonstrating key features of Uniswap v4:
+
+```bash
+# Run the ERC6909 token standard example
+cargo run --example erc6909_example
+
+# Run the protocol fee example
+cargo run --example protocol_fee_example
+
+# Run the flash loan example
+cargo run --example flash_loan_example
+```
+
+### Running Tests
+
+To run specific test files or test categories:
+
+```bash
+# Run all tests
+cargo test
+
+# Run specific integration tests
+cargo test --test integration::comprehensive_features_test
+
+# Run specific unit tests
+cargo test --test unit::dynamic_fee_hook_test
+
+# Run tests with verbose output
+cargo test -- --nocapture
+```
+
+### Key Test Categories
+
+1. **Unit Tests**: Test individual components in isolation
+
+   - Dynamic Fee Hook Test: Tests the hook that adjusts fees based on market volatility
+   - Protocol Fee Test: Tests the protocol fee collection mechanism
+   - ERC6909 Test: Tests the multi-token standard implementation
+2. **Integration Tests**: Test multiple components working together
+
+   - Comprehensive Features Test: Tests the interaction between hooks, protocol fees, and ERC6909 tokens
+   - Flash Loan Test: Tests the flash loan functionality
+3. **Example Programs**: Demonstrate key features with detailed explanations
+
+   - ERC6909 Example: Demonstrates the multi-token standard
+   - Protocol Fee Example: Demonstrates the protocol fee system
+   - Flash Loan Example: Demonstrates flash loan functionality
 
 ## Development
 

@@ -1,92 +1,18 @@
 # Uniswap V4 Core (Rust Implementation)
 
-## Project Status
-
-* [X] Core mathematical libraries implemented
-  * [X] FullMath
-  * [X] BitMath
-  * [X] SqrtPriceMath
-  * [X] TickMath
-  * [X] LiquidityMath
-  * [X] SwapMath
-* [X] State management components implemented
-  * [X] Pool state
-  * [X] Position management
-  * [X] Tick tracking
-* [X] Core functions implemented
-  * [X] Swap execution
-  * [X] Liquidity management
-  * [X] Fee handling
-  * [X] Donate functionality
-* [X] Hook system architecture
-  * [X] Hook interfaces
-  * [X] Hook registry
-  * [X] Flag-based hook activation
-* [X] Basic pool management
-* [X] Comprehensive test suite
-  * [X] 34/34 tests passing with full coverage
-* [ ] Advanced features (in progress)
-  * [X] Flash loans
-  * [X] Multi-pool routing
-  * [ ] Custom hooks implementations
-  * [ ] Advanced gas optimizations
-
 This is a Rust implementation of the Uniswap V4 Core protocol, maintaining full compatibility with the original Solidity implementation while leveraging Rust's safety and performance features.
 
-## Recent Updates
+## Key Features
 
-### Bug Fixes & Improvements
-
-* Fixed compilation errors related to primitive type conversions
-* Resolved mutability issues in BitMath and other core components
-* Corrected module visibility problems in the math library
-* Fixed tick_math implementation to ensure accurate price/tick conversions
-* Enhanced swap functionality to properly handle price limits and direction
-* Improved test coverage - all 34 tests now pass successfully
-
-## Project Structure
-
-```
-uniswap-v4-core/
-├── contracts/                 # Solidity smart contracts
-│   ├── interfaces/           # Core interfaces
-│   └── core/                 # Essential Solidity components
-├── src/                      # Rust implementation
-│   ├── core/                 # Core implementation
-│   │   ├── math/            # Mathematical operations
-│   │   ├── state/           # State management
-│   │   ├── hooks/           # Hook system
-│   │   └── pool_manager/    # Pool management
-│   ├── fees/                # Fee management
-│   └── bindings/            # Solidity-Rust bindings
-├── tests/                    # Test suite
-└── docs/                     # Documentation
-```
-
-## Prerequisites
-
-- Rust (latest stable version)
-- Foundry (for Solidity components)
-- Node.js and npm (for development tools)
-
-## Setup
-
-1. Install Rust dependencies:
-
-   ```bash
-   cargo build
-   ```
-2. Install Foundry dependencies:
-
-   ```bash
-   forge install
-   ```
+- **Enhanced Hook System**: Customizable hooks that can dynamically adjust fees, collect protocol fees, and reward liquidity providers
+- **Protocol Fee System**: Flexible fee collection with independent settings for different trading directions
+- **ERC6909 Token Standard**: Multi-token standard for efficient management of liquidity positions
+- **Flash Loans**: Built-in flash loan functionality for capital-efficient operations
+- **Dynamic Fee Adjustment**: Market volatility-based fee adjustment for optimal trading conditions
 
 ## Running Examples and Tests
 
 ### Running Examples
-
-To run the examples demonstrating key features of Uniswap v4:
 
 ```bash
 # Run the ERC6909 token standard example
@@ -100,8 +26,6 @@ cargo run --example flash_loan_example
 ```
 
 ### Running Tests
-
-To run specific test files or test categories:
 
 ```bash
 # Run all tests
@@ -117,122 +41,62 @@ cargo test --test unit::dynamic_fee_hook_test
 cargo test -- --nocapture
 ```
 
-### Key Test Categories
+## Test Categories
 
 1. **Unit Tests**: Test individual components in isolation
+   - Dynamic Fee Hook Test: Tests fee adjustment based on market volatility
+   - Protocol Fee Test: Tests protocol fee collection mechanism
+   - ERC6909 Test: Tests multi-token standard implementation
 
-   - Dynamic Fee Hook Test: Tests the hook that adjusts fees based on market volatility
-   - Protocol Fee Test: Tests the protocol fee collection mechanism
-   - ERC6909 Test: Tests the multi-token standard implementation
 2. **Integration Tests**: Test multiple components working together
+   - Comprehensive Features Test: Tests interaction between hooks, protocol fees, and ERC6909 tokens
+   - Flash Loan Test: Tests flash loan functionality
 
-   - Comprehensive Features Test: Tests the interaction between hooks, protocol fees, and ERC6909 tokens
-   - Flash Loan Test: Tests the flash loan functionality
-3. **Example Programs**: Demonstrate key features with detailed explanations
+## Setup
 
-   - ERC6909 Example: Demonstrates the multi-token standard
-   - Protocol Fee Example: Demonstrates the protocol fee system
-   - Flash Loan Example: Demonstrates flash loan functionality
+1. Install Rust dependencies:
+   ```bash
+   cargo build
+   ```
 
-## Development
+2. Install Foundry dependencies:
+   ```bash
+   forge install
+   ```
 
-This project uses a hybrid approach:
+## Project Structure
 
-- 90% Rust implementation for core logic and computations
-- 10% Solidity for smart contract interfaces and EVM-specific operations
+```
+uniswap-v4-core/
+├── contracts/                 # Solidity smart contracts
+├── src/                      # Rust implementation
+│   ├── core/                 # Core implementation
+│   │   ├── math/            # Mathematical operations
+│   │   ├── state/           # State management
+│   │   ├── hooks/           # Hook system
+│   │   └── pool_manager/    # Pool management
+│   ├── fees/                # Fee management
+│   └── bindings/            # Solidity-Rust bindings
+├── examples/                 # Example programs
+├── tests/                    # Test suite
+└── docs/                     # Documentation
+```
 
-### Key Features
+## Project Status
 
-- Full compatibility with Uniswap V4 Core
-- Optimized gas efficiency
-- Strong type safety through Rust
-- Comprehensive test coverage
-- FFI layer for Rust-Solidity interaction
+* [X] Core mathematical libraries implemented
+* [X] State management components implemented
+* [X] Core functions implemented
+* [X] Hook system architecture
+* [X] Basic pool management
+* [X] Comprehensive test suite
+* [X] Flash loans
+* [X] Multi-pool routing
+* [ ] Advanced gas optimizations
 
-## Developer Guidelines
+## Feature Details
 
-### Common Issues & Best Practices
-
-1. **Type Conversions**: When working with U256 and other numeric types:
-
-   - Use `as_u128()`, `as_i128()` methods for safe conversions
-   - Prefer checked arithmetic operations to avoid overflow/underflow
-   - Be cautious when shifting bits in large integers to prevent overflow
-2. **Mutability Considerations**:
-
-   - Declare variables as mutable (`let mut x`) when they need to be modified
-   - Pay special attention to parameters in math functions that modify their inputs
-3. **Module Organization**:
-
-   - Ensure modules are properly exported with `pub` when needed by external code
-   - Use proper import paths (e.g., `crate::core::math::types`) consistently
-4. **Test Strategies**:
-
-   - Test both edge cases and typical scenarios
-   - For price calculations, use realistic price values to avoid precision issues
-   - When testing swaps, use appropriate price limits based on swap direction
-5. **Debugging Tips**:
-
-   - Use `println!()` statements to trace values in tests
-   - Compare values against the Solidity implementation for verification
-   - Check for off-by-one errors in tick calculations
-
-## Architecture Details
-
-### Math Libraries
-
-Our math libraries provide precise calculations for the core functionality:
-
-- **FullMath**: Handles overflow-safe arithmetic operations
-- **BitMath**: Handles bit manipulation and finding positions of bits
-- **SqrtPriceMath**: Calculates sqrt price changes and token amounts
-- **TickMath**: Converts between sqrt price and tick indices
-- **LiquidityMath**: Computes liquidity changes
-- **SwapMath**: Calculates swap results and price impact
-
-### State Management
-
-State components track and update pool and user positions:
-
-- **Pool**: Manages pool state, price, liquidity and swap execution
-- **Position**: Tracks user positions and accumulated fees
-- **Tick**: Handles tick initialization, tracking and crossings
-
-### Hook System
-
-The hook system enables customization of pool behavior:
-
-- **Hook Interface**: Standardized callbacks for pool events
-- **Hook Registry**: Central registry for installing and managing hooks
-- **Flag-based Activation**: Bitflags determine which hooks are active
-
-## License
-
-GPL-2.0-or-later
-
-## Key Features
-
-### Core Features
-
-- Customizable liquidity pools
-- Flexible fee structure
-- Concentrated Liquidity model
-- Hook system
-- Flash loans
-
-### Added Features
-
-#### Protocol Fee System
-
-The Rust implementation includes a complete protocol fee system that supports:
-
-- Setting and collecting protocol fees
-- Independent fee settings for different trading directions (zero-for-one and one-for-zero)
-- Integration with LP fees
-- Protocol fee controller and management
-- Fee calculation and distribution mechanisms
-
-#### Enhanced Hook System
+### Enhanced Hook System
 
 The enhanced Hook system supports:
 
@@ -241,15 +105,44 @@ The enhanced Hook system supports:
 - Hook registry management
 - Example Hook implementations:
   - Dynamic Fee Hook - Adjusts fees based on market volatility
-  - TWAP Oracle Hook - Tracks time-weighted average prices
   - Liquidity Mining Hook - Rewards liquidity providers
-  - Volume Discount Hook - Provides fee discounts based on trading volume
 
-#### ERC6909 Token Standard
+### Protocol Fee System
 
-The Rust implementation includes the ERC6909 multi-token standard, supporting:
+The protocol fee system supports:
+
+- Setting and collecting protocol fees
+- Independent fee settings for different trading directions (zero-for-one and one-for-zero)
+- Integration with LP fees
+- Protocol fee controller and management
+- Fee calculation and distribution mechanisms
+
+### ERC6909 Token Standard
+
+The ERC6909 multi-token standard supports:
 
 - Multi-token management
 - Liquidity tokens
 - ERC6909Claims extension - Supports token claim functionality
 - Integration with pool state for managing liquidity tokens
+
+## Developer Guidelines
+
+### Common Issues & Best Practices
+
+1. **Type Conversions**: When working with U256 and other numeric types:
+   - Use `as_u128()`, `as_i128()` methods for safe conversions
+   - Prefer checked arithmetic operations to avoid overflow/underflow
+
+2. **Mutability Considerations**:
+   - Declare variables as mutable (`let mut x`) when they need to be modified
+   - Pay special attention to parameters in math functions that modify their inputs
+
+3. **Test Strategies**:
+   - Test both edge cases and typical scenarios
+   - For price calculations, use realistic price values to avoid precision issues
+   - When testing swaps, use appropriate price limits based on swap direction
+
+## License
+
+GPL-2.0-or-later

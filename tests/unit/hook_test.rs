@@ -52,8 +52,8 @@ mod hook_tests {
             _hook_data: &[u8],
         ) -> StateResult<BeforeHookResult> {
             Ok(BeforeHookResult {
-                amount0: 100,
-                amount1: -50,
+                amount: Some(100),
+                delta: Some(BalanceDelta::new(100, -50)),
                 fee_override: Some(2000),
             })
         }

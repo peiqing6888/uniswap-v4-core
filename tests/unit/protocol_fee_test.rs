@@ -7,7 +7,7 @@ mod protocol_fee_tests {
         types::MAX_PROTOCOL_FEE, ProtocolFeeIntegration
     };
     use uniswap_v4_core::core::flash_loan::currency::Currency;
-    use uniswap_v4_core::core::pool_manager::PoolKey;
+    use uniswap_v4_core::core::hooks::hook_interface::PoolKey;
     use uniswap_v4_core::core::state::Pool;
 
     #[test]

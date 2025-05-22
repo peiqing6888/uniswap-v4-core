@@ -91,8 +91,8 @@ impl Hook for IntegrationTestHook {
         
         // Return result with fee override
         Ok(BeforeHookResult {
-            amount0: 0,
-            amount1: 0,
+            amount: None,
+            delta: None,
             fee_override: Some(dynamic_fee),
         })
     }
@@ -213,8 +213,8 @@ fn test_integrated_features() {
         salt: [0u8; 32],
     };
     
-    // Get Hook
-    let hook = registry.get_hook(&hook_address).unwrap();
+    // Get Hook as mutable reference
+    let hook = registry.get_hook_mut(&hook_address).unwrap();
     
     // Call after_add_liquidity, should mint LP tokens
     let delta = BalanceDelta::new(0, 0);

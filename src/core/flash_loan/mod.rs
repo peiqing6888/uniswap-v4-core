@@ -120,14 +120,19 @@ impl FlashLoanManager {
         data: &[u8],
     ) -> Result<Vec<u8>, FlashLoanError> {
         if !self.lock.is_unlocked() {
+            // First unlock the lock
+            self.lock.unlock()?;
+            
+            // Execute callback
+            let result = callback.unlock_callback(data);
+            
+            // Lock again regardless of result
+            self.lock.lock();
+            
+            result
+        } else {
             return Err(FlashLoanError::ReentrancyError);
         }
-        
-        self.lock.unlock();
-        let result = callback.unlock_callback(data);
-        self.lock.lock();
-        
-        result
     }
     
     /// 获取（闪电贷）借用

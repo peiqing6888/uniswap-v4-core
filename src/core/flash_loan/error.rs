@@ -54,4 +54,15 @@ pub enum FlashLoanError {
     
     #[error("{0}")]
     Other(String),
+}
+
+use super::lock::LockError;
+
+impl From<LockError> for FlashLoanError {
+    fn from(err: LockError) -> Self {
+        match err {
+            LockError::AlreadyUnlocked => FlashLoanError::AlreadyUnlocked,
+            LockError::ManagerLocked => FlashLoanError::ManagerLocked,
+        }
+    }
 } 

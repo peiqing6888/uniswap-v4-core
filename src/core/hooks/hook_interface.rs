@@ -2,6 +2,7 @@ use crate::core::{
     state::{BalanceDelta, Result as StateResult},
     math::types::{SqrtPrice, Liquidity},
 };
+use ethers::types::Address;
 
 use super::{BeforeHookResult, AfterHookResult, BeforeSwapDelta, HookResult};
 

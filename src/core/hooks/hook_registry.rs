@@ -26,7 +26,12 @@ impl HookRegistry {
     }
 
     /// Gets a hook by address
-    pub fn get_hook(&mut self, address: &[u8; 20]) -> Option<&mut Box<dyn HookWithReturns>> {
+    pub fn get_hook(&self, address: &[u8; 20]) -> Option<&Box<dyn HookWithReturns>> {
+        self.hooks.get(address)
+    }
+    
+    /// Gets a mutable hook by address
+    pub fn get_hook_mut(&mut self, address: &[u8; 20]) -> Option<&mut Box<dyn HookWithReturns>> {
         self.hooks.get_mut(address)
     }
 
@@ -69,7 +74,7 @@ impl HookRegistry {
         
         // Check if we should call this hook and if it returns a delta
         if flags.is_enabled(HookFlags::BEFORE_SWAP) && flags.is_enabled(HookFlags::BEFORE_SWAP_RETURNS_DELTA) {
-            if let Some(hook) = self.get_hook(&key.hooks) {
+            if let Some(hook) = self.get_hook_mut(&key.hooks) {
                 return hook.before_swap_with_delta(sender, key, params, hook_data);
             }
         }
@@ -91,7 +96,7 @@ impl HookRegistry {
         
         // Check if we should call this hook and if it returns a delta
         if flags.is_enabled(HookFlags::AFTER_SWAP) && flags.is_enabled(HookFlags::AFTER_SWAP_RETURNS_DELTA) {
-            if let Some(hook) = self.get_hook(&key.hooks) {
+            if let Some(hook) = self.get_hook_mut(&key.hooks) {
                 return hook.after_swap_with_delta(sender, key, params, delta, hook_data);
             }
         }
@@ -114,7 +119,7 @@ impl HookRegistry {
         
         // Check if we should call this hook and if it returns a delta
         if flags.is_enabled(HookFlags::AFTER_ADD_LIQUIDITY) && flags.is_enabled(HookFlags::AFTER_ADD_LIQUIDITY_RETURNS_DELTA) {
-            if let Some(hook) = self.get_hook(&key.hooks) {
+            if let Some(hook) = self.get_hook_mut(&key.hooks) {
                 return hook.after_add_liquidity_with_delta(sender, key, params, delta, fees_accrued, hook_data);
             }
         }
@@ -137,7 +142,7 @@ impl HookRegistry {
         
         // Check if we should call this hook and if it returns a delta
         if flags.is_enabled(HookFlags::AFTER_REMOVE_LIQUIDITY) && flags.is_enabled(HookFlags::AFTER_REMOVE_LIQUIDITY_RETURNS_DELTA) {
-            if let Some(hook) = self.get_hook(&key.hooks) {
+            if let Some(hook) = self.get_hook_mut(&key.hooks) {
                 return hook.after_remove_liquidity_with_delta(sender, key, params, delta, fees_accrued, hook_data);
             }
         }

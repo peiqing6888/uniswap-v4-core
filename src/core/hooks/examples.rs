@@ -83,8 +83,8 @@ impl Hook for DynamicFeeHook {
         
         // Return result with fee override
         Ok(BeforeHookResult {
-            amount0: 0,
-            amount1: 0,
+            amount: None,
+            delta: None,
             fee_override: Some(dynamic_fee),
         })
     }
@@ -453,8 +453,8 @@ impl Hook for VolumeDiscountHook {
         
         // Return result with fee override
         Ok(BeforeHookResult {
-            amount0: 0,
-            amount1: 0,
+            amount: None,
+            delta: None,
             fee_override: Some(discounted_fee),
         })
     }

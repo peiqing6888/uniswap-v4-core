@@ -2,6 +2,8 @@ pub mod hook_interface;
 pub mod hook_registry;
 pub mod examples;
 
+use crate::core::state::BalanceDelta;
+
 pub use hook_interface::*;
 pub use hook_registry::*;
 pub use examples::*;
@@ -9,10 +11,10 @@ pub use examples::*;
 /// Result of a before hook call
 #[derive(Debug, Clone)]
 pub struct BeforeHookResult {
-    /// Delta in token0 balance
-    pub amount0: i128,
-    /// Delta in token1 balance
-    pub amount1: i128,
+    /// Optional modified amount
+    pub amount: Option<i128>,
+    /// Optional balance delta
+    pub delta: Option<BalanceDelta>,
     /// Optional fee override
     pub fee_override: Option<u32>,
 }
@@ -20,8 +22,8 @@ pub struct BeforeHookResult {
 impl Default for BeforeHookResult {
     fn default() -> Self {
         Self {
-            amount0: 0,
-            amount1: 0,
+            amount: None,
+            delta: None,
             fee_override: None,
         }
     }
@@ -30,17 +32,14 @@ impl Default for BeforeHookResult {
 /// Result of an after hook call
 #[derive(Debug, Clone)]
 pub struct AfterHookResult {
-    /// Delta in token0 balance
-    pub amount0: i128,
-    /// Delta in token1 balance
-    pub amount1: i128,
+    /// Optional balance delta
+    pub delta: Option<BalanceDelta>,
 }
 
 impl Default for AfterHookResult {
     fn default() -> Self {
         Self {
-            amount0: 0,
-            amount1: 0,
+            delta: None,
         }
     }
 }

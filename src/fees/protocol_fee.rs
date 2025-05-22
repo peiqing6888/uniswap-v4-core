@@ -1,5 +1,5 @@
 use crate::core::state::{Pool, StateError, Result as StateResult};
-use crate::core::pool_manager::PoolKey;
+use crate::core::hooks::hook_interface::PoolKey;
 use crate::core::flash_loan::Currency;
 use super::types::{ProtocolFee, MAX_PROTOCOL_FEE, PIPS_DENOMINATOR};
 use super::controller::{ProtocolFeeManager, ProtocolFeeError};

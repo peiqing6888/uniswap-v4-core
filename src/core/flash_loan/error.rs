@@ -1,4 +1,3 @@
-
 /// Errors that can occur during flash loan operations
 #[derive(Debug, thiserror::Error)]
 pub enum FlashLoanError {
@@ -46,6 +45,12 @@ pub enum FlashLoanError {
     
     #[error("Token error: {0}")]
     TokenError(String),
+    
+    #[error("Reentrancy error")]
+    ReentrancyError,
+    
+    #[error("Not called in callback")]
+    NotCalledInCallback,
     
     #[error("{0}")]
     Other(String),

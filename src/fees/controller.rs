@@ -1,8 +1,8 @@
 use ethers::types::Address;
 use crate::core::state::Result as StateResult;
+use crate::core::hooks::hook_interface::PoolKey;
 use crate::core::flash_loan::Currency;
 use super::types::{ProtocolFee, ProtocolFeesAccrued};
-use crate::core::pool_manager::PoolKey;
 use primitive_types::U256;
 
 /// Error types for protocol fee control
@@ -113,14 +113,14 @@ impl ProtocolFeeManager {
     
     /// Update protocol fees
     pub fn update_protocol_fees(&mut self, currency: Currency, amount: U256) {
-        let currency_address = currency.address();
+        let currency_address = currency.address().unwrap_or(Address::zero());
         
         self.fees_accrued.update_fees(currency_address, amount);
     }
     
     /// Query protocol fees
     pub fn protocol_fees_accrued(&self, currency: Currency) -> U256 {
-        let currency_address = currency.address();
+        let currency_address = currency.address().unwrap_or(Address::zero());
         
         self.fees_accrued.get_fees(currency_address)
     }
@@ -144,7 +144,7 @@ impl ProtocolFeeManager {
             return Err(ProtocolFeeError::ProtocolFeeCurrencySynced);
         }
         
-        let currency_address = currency.address();
+        let currency_address = currency.address().unwrap_or(Address::zero());
         
         let collected = self.fees_accrued.collect_fees(currency_address, amount);
         

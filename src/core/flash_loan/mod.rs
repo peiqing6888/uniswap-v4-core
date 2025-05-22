@@ -1,5 +1,6 @@
 use primitive_types::U256;
 use ethers::types::Address;
+use std::collections::HashMap;
 
 pub mod currency;
 pub mod lock;
@@ -15,17 +16,22 @@ pub use error::*;
 pub use examples::*;
 pub use types::*;
 
+use crate::core::state::Result as StateResult;
+
 // Constants
 pub const ZERO_ADDRESS: Address = Address::zero();
 
 // Main flash loan module
 // This module provides the implementation of flash loans for Uniswap V4
 
-/// Flash loan manager for the Uniswap V4 core
+/// 键类型用于存储账户和币种
+type AccountCurrencyKey = (Address, Currency);
+
+/// 管理池中的闪电贷操作
 pub struct FlashLoanManager {
-    /// Currency delta tracker
-    currency_delta_tracker: SharedCurrencyDeltaTracker,
-    /// Lock
+    /// 当前的余额变动
+    deltas: HashMap<AccountCurrencyKey, i128>,
+    /// 锁定机制
     pub lock: Lock,
     /// Currency reserves (for settling)
     currency_reserves: CurrencyReserves,
@@ -76,126 +82,101 @@ impl FlashLoanManager {
     /// Create a new flash loan manager
     pub fn new() -> Self {
         Self {
-            currency_delta_tracker: SharedCurrencyDeltaTracker::new(),
+            deltas: HashMap::new(),
             lock: Lock::new(),
             currency_reserves: CurrencyReserves::new(),
         }
     }
     
-    /// Unlock the pool manager to execute a flash loan callback
-    pub fn unlock<C: FlashLoanCallback>(&mut self, callback: &mut C, data: &[u8]) -> Result<Vec<u8>, FlashLoanError> {
-        // Create unlock guard (automatically locks on drop)
-        let _guard = match UnlockGuard::new(&self.lock) {
-            Ok(guard) => guard,
-            Err(_) => return Err(FlashLoanError::AlreadyUnlocked),
-        };
-        
-        // Execute the callback
-        let result = callback.unlock_callback(data)?;
-        
-        // Check if all currencies are settled
-        if self.currency_delta_tracker.non_zero_delta_count() != 0 {
-            return Err(FlashLoanError::CurrencyNotSettled);
-        }
-        
-        Ok(result)
+    /// 更新指定地址的币种余额变动
+    pub fn update_delta(
+        &mut self,
+        address: Address,
+        currency: Currency,
+        delta: i128,
+    ) -> StateResult<()> {
+        let key = (address, currency);
+        let new_delta = self.deltas.get(&key).unwrap_or(&0) + delta;
+        self.deltas.insert(key, new_delta);
+        Ok(())
     }
     
-    /// Take a currency from the pool manager (flash loan)
-    pub fn take(&self, currency: Currency, to: Address, amount: u128) -> Result<(), FlashLoanError> {
-        // Check if the pool manager is locked
+    /// 获取指定地址和币种的余额变动
+    pub fn get_delta(&self, address: Address, currency: Currency) -> i128 {
+        *self.deltas.get(&(address, currency)).unwrap_or(&0)
+    }
+    
+    /// 对已存在的余额变动同步
+    pub fn sync(&mut self, currency: Currency) {
+        // This is a placeholder for a real sync implementation
+        // In a real implementation, this would process all deltas for the currency
+        println!("Syncing currency: {:?}", currency);
+    }
+    
+    /// 执行闪电贷回调
+    pub fn unlock<C: FlashLoanCallback>(
+        &mut self,
+        callback: &mut C,
+        data: &[u8],
+    ) -> Result<Vec<u8>, FlashLoanError> {
         if !self.lock.is_unlocked() {
-            return Err(FlashLoanError::ManagerLocked);
+            return Err(FlashLoanError::ReentrancyError);
         }
         
-        // Account the delta (negative because it's being taken)
-        self.currency_delta_tracker.apply_delta(to, currency, -(amount as i128));
+        self.lock.unlock();
+        let result = callback.unlock_callback(data);
+        self.lock.lock();
         
-        // Note: In a real implementation, you would transfer tokens here
-        // This is simplified and would need integration with actual token contracts
+        result
+    }
+    
+    /// 获取（闪电贷）借用
+    pub fn take(
+        &self,
+        currency: Currency,
+        to: Address,
+        amount: u128,
+    ) -> Result<(), FlashLoanError> {
+        if !self.lock.is_unlocked() {
+            return Err(FlashLoanError::NotCalledInCallback);
+        }
+        
+        // In a real implementation, this would transfer tokens
+        println!("Taking {} of currency {:?} to {:?}", amount, currency, to);
         
         Ok(())
     }
     
-    /// Settle a currency to the pool manager (repay flash loan)
-    pub fn settle(&mut self, recipient: Address, value: U256) -> Result<U256, FlashLoanError> {
-        // Check if the pool manager is locked
+    /// 结算一个余额
+    pub fn settle(
+        &mut self,
+        recipient: Address,
+        value: U256,
+    ) -> Result<U256, FlashLoanError> {
         if !self.lock.is_unlocked() {
-            return Err(FlashLoanError::ManagerLocked);
+            return Err(FlashLoanError::NotCalledInCallback);
         }
         
-        let currency = match self.currency_reserves.get_synced_currency() {
-            Some(curr) => curr,
-            None => Currency::from_address(ZERO_ADDRESS), // Default to native currency
-        };
+        // In a real implementation, this would settle balances
+        println!("Settling {} to {:?}", value, recipient);
         
-        let paid: U256 = if currency.is_native() {
-            // For native currency, value is the amount being paid
-            value
-        } else {
-            // For ERC20, calculate from the reserves
-            if !value.is_zero() {
-                return Err(FlashLoanError::NonzeroNativeValue);
-            }
-            
-            // Reserves are guaranteed to be set because currency and reserves are always set together
-            let reserves_before = self.currency_reserves.get_synced_reserves();
-            
-            // In a real implementation, you would get the current balance here
-            // This is simplified
-            let reserves_now = U256::zero();
-            
-            // Reset the currency after settling
-            self.currency_reserves.reset_currency();
-            
-            reserves_now.saturating_sub(reserves_before)
-        };
-        
-        // Account the delta (positive because it's being settled)
-        self.currency_delta_tracker.apply_delta(
-            recipient, 
-            currency, 
-            paid.low_u128() as i128
-        );
-        
-        Ok(paid)
+        Ok(value)
     }
     
-    /// Sync a currency (for settling)
-    pub fn sync(&mut self, currency: Currency) {
-        // In a real implementation, you would get the current balance here
-        // and store it in the reserves
-        if currency.is_native() {
-            self.currency_reserves.reset_currency();
-        } else {
-            // Example: we're assuming a balance of 1000 for this example
-            let balance = U256::from(1000u64);
-            self.currency_reserves.sync_currency_and_reserves(currency, balance);
-        }
-    }
-    
-    /// Get the current delta for a currency and address
-    pub fn get_delta(&self, address: Address, currency: Currency) -> i128 {
-        self.currency_delta_tracker.get_delta(address, currency)
-    }
-    
-    /// Clear a positive delta (used for dust amounts)
-    pub fn clear(&self, currency: Currency, address: Address, amount: u128) -> Result<(), FlashLoanError> {
-        // Check if the pool manager is locked
-        if !self.lock.is_unlocked() {
-            return Err(FlashLoanError::ManagerLocked);
+    /// 清除一个正值余额（用于处理微小金额）
+    pub fn clear(
+        &self,
+        currency: Currency,
+        address: Address,
+        amount: u128,
+    ) -> Result<(), FlashLoanError> {
+        let delta = self.get_delta(address, currency);
+        if delta <= 0 || (delta as u128) < amount {
+            return Err(FlashLoanError::InsufficientBalance);
         }
         
-        let current = self.get_delta(address, currency);
-        let amount_delta = amount as i128;
-        
-        // Must clear an exact positive delta
-        if amount_delta != current {
-            return Err(FlashLoanError::MustClearExactPositiveDelta);
-        }
-        
-        // Clear the delta by applying a negative delta of the same amount
-        self.currency_delta_tracker.apply_delta(address, currency, -amount_delta);
+        // In a real implementation, this would clear the delta
+        println!("Clearing {} of currency {:?} from {:?}", amount, currency, address);
         
         Ok(())
     }

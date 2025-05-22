@@ -1,42 +1,74 @@
 use ethers::types::{Address, U256};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
+use std::fmt;
 
-/// Currency type represents a token in the Uniswap ecosystem
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Currency(pub Address);
+/// Currency represents a token that can be used in the protocol
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Currency {
+    /// Native token (ETH on Ethereum)
+    Native,
+    /// ERC20 token
+    Erc20(Address),
+    /// Protocol operated token
+    Pool(U256),
+}
 
 // ZERO_ADDRESS is the address used to represent native ETH
 pub const ZERO_ADDRESS: Address = Address::zero();
 
 impl Currency {
-    /// Returns true if this is the native currency (ETH)
-    pub fn is_native(&self) -> bool {
-        self.0 == ZERO_ADDRESS
-    }
-
-    /// Creates a currency from an address
-    pub fn from_address(address: Address) -> Self {
-        Self(address)
-    }
-
-    /// Get the underlying address
-    pub fn address(&self) -> Address {
-        self.0
-    }
-
-    /// Convert to a uint256 for ERC6909 token ID
-    pub fn to_id(&self) -> U256 {
-        U256::from_big_endian(&self.0.as_bytes()[..])
+    /// Creates a new currency from a token ID
+    pub fn from_id(id: U256) -> Self {
+        // Simple implementation to convert a U256 ID to a Currency
+        // In a real implementation, this would decode the ID appropriately
+        Self::Pool(id)
     }
     
-    /// Convert from a uint256 token ID to a Currency
-    pub fn from_id(id: U256) -> Self {
-        let mut bytes = [0u8; 32];
-        id.to_big_endian(&mut bytes);
-        let mut addr_bytes = [0u8; 20];
-        addr_bytes.copy_from_slice(&bytes[12..32]);
-        Self(Address::from_slice(&addr_bytes))
+    /// Creates a new currency from an address
+    pub fn from_address(address: Address) -> Self {
+        Self::Erc20(address)
+    }
+    
+    /// Checks if this is the native currency
+    pub fn is_native(&self) -> bool {
+        matches!(self, Self::Native)
+    }
+    
+    /// Checks if this is an ERC20 token
+    pub fn is_erc20(&self) -> bool {
+        matches!(self, Self::Erc20(_))
+    }
+    
+    /// Checks if this is a protocol operated token
+    pub fn is_pool(&self) -> bool {
+        matches!(self, Self::Pool(_))
+    }
+    
+    /// Gets the address of this currency if it's an ERC20
+    pub fn address(&self) -> Option<Address> {
+        match self {
+            Self::Erc20(address) => Some(*address),
+            _ => None,
+        }
+    }
+    
+    /// Gets the ID of this currency if it's a pool
+    pub fn id(&self) -> Option<U256> {
+        match self {
+            Self::Pool(id) => Some(*id),
+            _ => None,
+        }
+    }
+}
+
+impl fmt::Display for Currency {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Native => write!(f, "Native"),
+            Self::Erc20(address) => write!(f, "ERC20({:?})", address),
+            Self::Pool(id) => write!(f, "Pool({})", id),
+        }
     }
 }
 

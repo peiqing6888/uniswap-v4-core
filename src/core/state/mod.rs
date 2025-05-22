@@ -45,6 +45,15 @@ pub enum StateError {
 
     #[error("Invalid price")]
     InvalidPrice,
+    
+    #[error("Liquidity overflow in position")]
+    LiquidityOverflow,
+    
+    #[error("Liquidity position not found")]
+    LiquidityNotFound,
+    
+    #[error("Insufficient liquidity for operation")]
+    InsufficientLiquidity,
 }
 
 /// Result type for state operations

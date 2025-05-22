@@ -1,4 +1,5 @@
 use primitive_types::U256;
+use num_traits::Zero;
 use crate::core::math::types::{SqrtPrice, Liquidity};
 
 /// Slot0 stores the most frequently accessed state of the pool
@@ -36,8 +37,43 @@ pub struct BalanceDelta {
 }
 
 impl BalanceDelta {
+    /// Creates a new balance delta
     pub fn new(amount0: i128, amount1: i128) -> Self {
         Self { amount0, amount1 }
+    }
+    
+    /// Gets the amount0 delta
+    pub fn amount0(&self) -> i128 {
+        self.amount0
+    }
+    
+    /// Gets the amount1 delta
+    pub fn amount1(&self) -> i128 {
+        self.amount1
+    }
+    
+    /// Checks if the delta is zero for both tokens
+    pub fn is_zero(&self) -> bool {
+        self.amount0 == 0 && self.amount1 == 0
+    }
+    
+    /// Adds another balance delta to this one
+    pub fn add(&self, other: &Self) -> Self {
+        Self {
+            amount0: self.amount0 + other.amount0,
+            amount1: self.amount1 + other.amount1,
+        }
+    }
+}
+
+impl std::ops::Add for BalanceDelta {
+    type Output = Self;
+    
+    fn add(self, other: Self) -> Self {
+        Self {
+            amount0: self.amount0 + other.amount0,
+            amount1: self.amount1 + other.amount1,
+        }
     }
 }
 

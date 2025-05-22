@@ -98,6 +98,28 @@ impl Pool {
         Ok(())
     }
 
+    /// Modifies liquidity for a position with the given parameters
+    pub fn modify_liquidity(
+        &mut self,
+        tick_lower: i32, 
+        tick_upper: i32,
+        liquidity_delta: i128,
+        tick_spacing: i32,
+    ) -> Result<(BalanceDelta, BalanceDelta)> {
+        // Default empty owner and salt (these will be handled by the PositionManager)
+        let owner = [0u8; 20];
+        let salt = [0u8; 32];
+        
+        self.modify_position(
+            owner,
+            tick_lower,
+            tick_upper,
+            liquidity_delta,
+            tick_spacing,
+            salt,
+        )
+    }
+
     /// Modifies the position's liquidity and returns the resulting balance changes
     pub fn modify_position(
         &mut self,

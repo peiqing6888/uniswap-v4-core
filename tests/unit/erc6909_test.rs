@@ -129,6 +129,9 @@ mod erc6909_tests {
         // 再次创建声明
         let claim_id = claims.create_claim(owner, recipient, token_id, U256::from(300)).unwrap();
         
+        // 授权 recipient 从 owner 处转移令牌
+        claims.erc6909_mut().approve(owner, recipient, token_id, U256::from(300)).unwrap();
+
         // 执行声明
         claims.execute_claim(recipient, claim_id).unwrap();
         assert!(claims.get_claim(claim_id).is_none());
@@ -161,6 +164,9 @@ mod erc6909_tests {
         ).unwrap();
 
         // 验证声明是否存在
+        // 首先，owner 需要授权 recipient 来执行声明中的转移
+        liquidity_claims.approve(owner, recipient, pool_id, U256::from(500)).unwrap();
+        
         let result = liquidity_claims.execute_liquidity_claim(recipient, claim_id);
         assert!(result.is_ok());
 

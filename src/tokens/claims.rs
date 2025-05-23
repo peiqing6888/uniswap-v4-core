@@ -184,13 +184,18 @@ impl ERC6909Claims {
         }
         
         // 执行转移
-        self.erc6909.transfer_from(
+        match self.erc6909.transfer_from(
             caller,
             claim.owner,
             claim.recipient,
             claim.token_id,
             claim.amount
-        ).map_err(|_| ClaimsError::InsufficientBalance)?;
+        ) {
+            Ok(_) => {},
+            Err(ERC6909Error::InsufficientBalance) => return Err(ClaimsError::InsufficientBalance),
+            Err(ERC6909Error::InsufficientAllowance) => return Err(ClaimsError::Unauthorized), // Or a new ClaimsError::InsufficientAllowance
+            Err(_) => return Err(ClaimsError::Unauthorized), // Or a more generic error
+        };
         
         // 移除声明
         self.claims.remove(&claim_id);

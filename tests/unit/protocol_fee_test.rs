@@ -38,13 +38,13 @@ mod protocol_fee_tests {
 
         // Test zero-for-one direction protocol fee calculation
         let zero_for_one_swap_fee = fee.calculate_swap_fee(true, lp_fee);
-        // Expected result: 3000 + 100 - (3000 * 100 / 1_000_000) = 3100 - 0.3 = 3099.7 ≈ 3099
-        assert_eq!(zero_for_one_swap_fee, 3099);
+        // Expected result: 3000 + 100 - (3000 * 100 / 1_000_000) = 3100 - 0 = 3100
+        assert_eq!(zero_for_one_swap_fee, 3100);
 
         // Test one-for-zero direction protocol fee calculation
         let one_for_zero_swap_fee = fee.calculate_swap_fee(false, lp_fee);
-        // Expected result: 3000 + 200 - (3000 * 200 / 1_000_000) = 3200 - 0.6 = 3199.4 ≈ 3199
-        assert_eq!(one_for_zero_swap_fee, 3199);
+        // Expected result: 3000 + 200 - (3000 * 200 / 1_000_000) = 3200 - 0 = 3200
+        assert_eq!(one_for_zero_swap_fee, 3200);
     }
 
     #[test]

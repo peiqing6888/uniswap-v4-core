@@ -263,14 +263,16 @@ impl PoolManager {
         let pool_id = pool_key_to_id(&key);
         
         // Get pool or return error
-        let pool = self.pools.get_mut(&pool_id).ok_or(StateError::PoolNotInitialized)?;
+        // let pool = self.pools.get_mut(&pool_id).ok_or(StateError::PoolNotInitialized)?;
         
-        // Call hook before swap if available
+        // Prepare variables for hook results
         let mut amount_to_swap = amount_specified;
-        let mut before_swap_delta = Default::default();
-        let mut lp_fee_override = None;
+        let mut hook_provided_pre_swap_delta = BalanceDelta::default();
+        let mut lp_fee_override_from_hook: Option<u32> = None;
         
-        if let Some(hook) = self.hook_registry.get_hook_mut(&key.hooks.0) {
+        // Step 1: Extract all data from before_swap hook
+        if key.hooks != Address::zero() {
+            // Create hook key and params outside of the hook call to avoid borrowing issues
             let hook_interface_key = HookPoolKey {
                 token0: key.token0.0,
                 token1: key.token1.0,
@@ -280,39 +282,59 @@ impl PoolManager {
                 extension_data: key.extension_data.clone(),
             };
             
-            let swap_params = crate::core::hooks::hook_interface::SwapParams {
+            let swap_params_for_hook = crate::core::hooks::hook_interface::SwapParams {
                 amount_specified,
                 zero_for_one,
                 sqrt_price_limit_x96: SqrtPrice::new(sqrt_price_limit_x96),
             };
             
-            let hook_result = hook.before_swap(
-                Address::zero().0,  // 使用零地址作为发送者的占位符
-                &hook_interface_key,
-                &swap_params,
-                hook_data
-            )?;
+            // Get hook result in a completely separate scope to ensure borrow is dropped
+            let before_hook_result = {
+                if let Some(hook) = self.hook_registry.get_hook_mut(&key.hooks.0) {
+                    hook.before_swap(
+                        Address::zero().0, // Placeholder sender
+                        &hook_interface_key,
+                        &swap_params_for_hook,
+                        hook_data
+                    )
+                } else {
+                    Ok(BeforeHookResult::default())
+                }
+            }; // hook borrow is definitely dropped here
             
-            if let BeforeHookResult { amount: Some(amount), delta: Some(delta), fee_override: fee } = hook_result {
-                amount_to_swap = amount;
-                before_swap_delta = delta;
-                lp_fee_override = fee;
+            // Process the result
+            match before_hook_result {
+                Ok(result) => {
+                    if let Some(val) = result.amount { amount_to_swap = val; }
+                    if let Some(delta) = result.delta { hook_provided_pre_swap_delta = delta; }
+                    lp_fee_override_from_hook = result.fee_override;
+                }
+                Err(e) => return Err(e),
             }
         }
         
-        // Execute swap
-        let (swap_delta, protocol_fee) = pool.swap(
+        // Step 2: Account for pre-swap delta (no hook borrow active here)
+        if !hook_provided_pre_swap_delta.is_zero() {
+            self._account_pool_balance_delta(&key, hook_provided_pre_swap_delta, key.hooks)?;
+        }
+        
+        // Get pool or return error
+        let pool = self.pools.get_mut(&pool_id).ok_or(StateError::PoolNotInitialized)?;
+        
+        // Step 3: Execute swap in the pool
+        let (swap_delta, _protocol_fee_amount_from_pool) = pool.swap(
             amount_to_swap,
             SqrtPrice::new(sqrt_price_limit_x96),
             zero_for_one,
             key.tick_spacing,
+            lp_fee_override_from_hook,
         )?;
         
-        // Call hook after swap if available
-        let mut hook_delta = BalanceDelta::default();
-        let result_delta = swap_delta;
+        // Step 4: Extract all data from after_swap hook
+        let mut final_hook_delta_after_swap = BalanceDelta::default();
         
-        if let Some(hook) = self.hook_registry.get_hook_mut(&key.hooks.0) {
+        if key.hooks != Address::zero() {
+            // Create hook key and params outside of the hook call
             let hook_interface_key = HookPoolKey {
                 token0: key.token0.0,
                 token1: key.token1.0,
@@ -322,31 +344,42 @@ impl PoolManager {
                 extension_data: key.extension_data.clone(),
             };
             
-            let swap_params = crate::core::hooks::hook_interface::SwapParams {
+            let swap_params_for_hook = crate::core::hooks::hook_interface::SwapParams {
                 amount_specified,
                 zero_for_one,
                 sqrt_price_limit_x96: SqrtPrice::new(sqrt_price_limit_x96),
             };
             
-            let hook_result = hook.after_swap(
-                Address::zero().0,  // 使用零地址作为发送者的占位符
-                &hook_interface_key,
-                &swap_params,
-                &swap_delta,
-                hook_data
-            )?;
-            
-            if let AfterHookResult { delta: Some(delta) } = hook_result {
-                hook_delta = delta;
-                
-                // Account for hook delta
-                if !hook_delta.is_zero() {
-                    self._account_pool_balance_delta(&key, hook_delta, key.hooks)?;
+            // Get hook result in a completely separate scope
+            let after_hook_result = {
+                if let Some(hook) = self.hook_registry.get_hook_mut(&key.hooks.0) {
+                    hook.after_swap(
+                        Address::zero().0,
+                        &hook_interface_key,
+                        &swap_params_for_hook,
+                        &swap_delta,
+                        hook_data
+                    )
+                } else {
+                    Ok(AfterHookResult::default())
                 }
+            }; // hook borrow is definitely dropped here
+            
+            // Process the result
+            match after_hook_result {
+                Ok(result) => {
+                    if let Some(delta) = result.delta { final_hook_delta_after_swap = delta; }
+                }
+                Err(e) => return Err(e),
             }
         }
         
-        Ok(result_delta)
+        // Step 5: Account for after-swap delta (no hook borrow active here)
+        if !final_hook_delta_after_swap.is_zero() {
+            self._account_pool_balance_delta(&key, final_hook_delta_after_swap, key.hooks)?;
+        }
+        
+        Ok(swap_delta)
     }
 
     /// Accounts for a balance delta in the pool for a specific address

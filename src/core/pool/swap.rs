@@ -58,6 +58,7 @@ pub fn swap(
         params.sqrt_price_limit_x96,
         params.zero_for_one,
         key.tick_spacing,
+        lp_fee_override,
     ).map_err(PoolError::StateError)?;
     
     // Call hook after swap if available

@@ -299,6 +299,7 @@ impl Pool {
         sqrt_price_limit_x96: SqrtPrice,
         zero_for_one: bool,
         tick_spacing: i32,
+        lp_fee_override: Option<u32>,
     ) -> Result<(BalanceDelta, u128)> {
         if self.slot0.sqrt_price_x96.is_zero() {
             return Err(StateError::PoolNotInitialized);
@@ -327,24 +328,22 @@ impl Pool {
             }
         }
 
-        // Calculate protocol fee
-        let protocol_fee = if zero_for_one {
-            self.slot0.protocol_fee & 0xFF // Lower bits for 0->1
+        // Determine effective LP fee
+        let effective_lp_fee = lp_fee_override.unwrap_or(self.slot0.lp_fee);
+
+        // Calculate protocol fee rate
+        let protocol_fee_rate = if zero_for_one {
+            self.slot0.protocol_fee & 0xFF 
         } else {
-            (self.slot0.protocol_fee >> 16) & 0xFF // Upper bits for 1->0
+            (self.slot0.protocol_fee >> 16) & 0xFF
         };
 
-        // Calculate swap fee (LP fee + protocol fee)
-        let lp_fee = self.slot0.lp_fee;
-        let swap_fee = if protocol_fee == 0 {
-            lp_fee
-        } else {
-            // In this simplified implementation, we're combining LP fee and protocol fee
-            lp_fee
-        };
+        // The swap_fee for SwapMath should be the effective LP fee.
+        // Protocol fees are a portion of the fees collected based on this effective_lp_fee.
+        let swap_fee_for_math = effective_lp_fee;
 
         // Check for extreme swap fee
-        if swap_fee >= SwapMath::MAX_SWAP_FEE && amount_specified > 0 {
+        if swap_fee_for_math >= SwapMath::MAX_SWAP_FEE && amount_specified > 0 {
             return Err(StateError::InvalidFeeForExactOut);
         }
 
@@ -394,7 +393,7 @@ impl Pool {
                 sqrt_price_target_x96,
                 liquidity,
                 amount_specified_remaining,
-                swap_fee,
+                swap_fee_for_math,
             ).map_err(|_| StateError::InvalidPrice)?;
 
             // Update running values
@@ -412,11 +411,11 @@ impl Pool {
             }
 
             // Calculate protocol fee
-            if protocol_fee > 0 {
-                let protocol_delta_u128 = if swap_fee == protocol_fee {
+            if protocol_fee_rate > 0 {
+                let protocol_delta_u128 = if swap_fee_for_math == protocol_fee_rate {
                     fee_amount.as_u128() // All fees go to protocol
                 } else {
-                    let protocol_fee_u256 = U256::from(protocol_fee);
+                    let protocol_fee_u256 = U256::from(protocol_fee_rate);
                     let amount_in_plus_fee = amount_in + fee_amount;
                     (amount_in_plus_fee * protocol_fee_u256 / U256::from(1_000_000u128)).as_u128()
                 };
@@ -726,6 +725,7 @@ mod tests {
             sqrt_price_limit,
             true, // zero_for_one (selling token0 for token1)
             tick_spacing,
+            None,
         ).unwrap();
 
         // Check that the swap worked

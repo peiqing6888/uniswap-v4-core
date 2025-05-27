@@ -38,11 +38,15 @@ pub fn swap(
                 key,
                 params,
                 hook_data
-            ).map_err(PoolError::HookError)?;
+            ).map_err(PoolError::StateError)?;
             
-            if let BeforeHookResult { amount: Some(amount), delta: Some(delta), fee_override } = hook_result {
+            if let BeforeHookResult { amount: Some(amount), delta: Some(delta_val), fee_override } = hook_result {
                 amount_to_swap = amount;
-                before_swap_delta = delta;
+                if params.zero_for_one {
+                    before_swap_delta = BeforeSwapDelta { delta_specified: delta_val.amount0, delta_unspecified: delta_val.amount1 };
+                } else {
+                    before_swap_delta = BeforeSwapDelta { delta_specified: delta_val.amount1, delta_unspecified: delta_val.amount0 };
+                }
                 lp_fee_override = fee_override;
             }
         }
@@ -68,7 +72,7 @@ pub fn swap(
                 params,
                 &swap_delta,
                 hook_data
-            ).map_err(PoolError::HookError)?;
+            ).map_err(PoolError::StateError)?;
             
             if let AfterHookResult { delta: Some(delta) } = hook_result {
                 hook_delta = delta;

@@ -18,22 +18,22 @@ use ethers::types::Address;
 use primitive_types::U256;
 
 /// Pool management functions
-// pub mod management;
+pub mod management;
 
 /// Pool swap functions
-// pub mod swap;
+pub mod swap;
 
 /// Pool liquidity functions
-// pub mod liquidity;
+pub mod liquidity;
 
 /// Pool initialization functions
-// pub mod initialize;
+pub mod initialize;
 
 /// Pool fee functions
-// pub mod fees;
+pub mod fees;
 
 /// Pool state access functions
-// pub mod state;
+pub mod state;
 
 /// Error type for pool operations
 #[derive(Debug, thiserror::Error)]
@@ -91,12 +91,12 @@ pub fn validate_pool_key(key: &PoolKey, hook_registry: &HookRegistry) -> Result<
     // Check hook address is valid
     let hook_address = Address::from_slice(&key.hooks);
     if hook_address != Address::zero() {
-        if let Some(hook) = hook_registry.get_hook(&key.hooks) {
-            let hook_flags = HookFlags::from_address(key.hooks);
-            if !hook_flags.validate_hook_address() {
-                return Err(PoolError::HookError(crate::core::hooks::HookError::HookAddressNotValid(key.hooks)));
-            }
-        }
+        // Validate hook address for the given fee
+        hook_registry.validate_hook_address_for_fee(&key.hooks, key.fee)
+            .map_err(PoolError::HookError)?;
+    } else if crate::core::hooks::is_dynamic_fee(key.fee) {
+        // If no hook address but dynamic fee, that's an error
+        return Err(PoolError::HookError(crate::core::hooks::HookError::HookAddressNotValid([0u8; 20])));
     }
     
     Ok(())

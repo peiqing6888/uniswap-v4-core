@@ -1,7 +1,7 @@
 use crate::core::{
     state::{Pool, BalanceDelta, Result as StateResult, PositionKey},
     hooks::{
-        Hook, HookRegistry, BeforeHookResult, AfterHookResult, HookResult,
+        Hook, HookRegistry, BeforeHookResult, AfterHookResult, HookResult, HookError,
         hook_interface::{PoolKey, ModifyLiquidityParams},
     },
 };
@@ -22,7 +22,7 @@ pub fn modify_liquidity(
     let hook_address = Address::from_slice(&key.hooks);
     if hook_address != Address::zero() {
         if let Some(hook) = hook_registry.get_hook_mut(&key.hooks) {
-            let hook_result: HookResult<BeforeHookResult> = if params.liquidity_delta > 0 {
+            let hook_result = if params.liquidity_delta > 0 {
                 hook.before_add_liquidity(
                     sender.0,
                     key,
@@ -38,9 +38,9 @@ pub fn modify_liquidity(
                 )
             };
             
-            // Convert HookResult error to PoolError
+            // Handle hook result
             if let Err(e) = hook_result {
-                return Err(PoolError::HookError(e));
+                return Err(PoolError::StateError(e));
             }
         }
     }
@@ -60,7 +60,7 @@ pub fn modify_liquidity(
     let mut hook_delta = BalanceDelta::default();
     if hook_address != Address::zero() {
         if let Some(hook) = hook_registry.get_hook_mut(&key.hooks) {
-            let hook_result: HookResult<AfterHookResult> = if params.liquidity_delta > 0 {
+            let hook_result = if params.liquidity_delta > 0 {
                 hook.after_add_liquidity(
                     sender.0,
                     key,
@@ -80,13 +80,13 @@ pub fn modify_liquidity(
                 )
             };
             
-            // Convert HookResult error to PoolError and handle success case
+            // Handle hook result
             match hook_result {
                 Ok(AfterHookResult { delta: Some(delta) }) => {
                     hook_delta = delta;
                 },
                 Ok(_) => {},
-                Err(e) => return Err(PoolError::HookError(e)),
+                Err(e) => return Err(PoolError::StateError(e)),
             }
         }
     }

@@ -9,6 +9,7 @@ use crate::core::{
 use super::hook_interface::{PoolKey, SwapParams, ModifyLiquidityParams};
 use ethers::types::Address;
 use primitive_types::U256;
+use std::collections::HashMap;
 
 /// A fee hook that dynamically sets fees based on market conditions
 pub struct DynamicFeeHook {
@@ -147,7 +148,7 @@ impl TwapOracleHook {
         }
         
         let (start_timestamp, start_price) = self.observations[start_index];
-        let (end_timestamp, end_price) = self.observations[end_index];
+        let (end_timestamp, end_price) = self.observations[end_index - 1];
         
         if end_timestamp == start_timestamp {
             return end_price; // Instant price
@@ -205,15 +206,16 @@ impl Hook for TwapOracleHook {
         _delta: &BalanceDelta,
         _hook_data: &[u8],
     ) -> StateResult<AfterHookResult> {
-        // Update the oracle with the new price
-        self.update_oracle(params.sqrt_price_limit_x96.to_u256());
+        // Get current price from swap params
+        let current_price = params.sqrt_price_limit_x96.to_u256();
         
-        // Oracle just tracks data, no deltas to return
+        // Update the oracle
+        self.update_oracle(current_price);
+        
         Ok(AfterHookResult::default())
     }
 }
 
-// TWAP oracle doesn't need to return any deltas
 impl HookWithReturns for TwapOracleHook {}
 
 /// A liquidity mining hook that rewards liquidity providers
@@ -225,11 +227,11 @@ pub struct LiquidityMiningHook {
     /// Last update timestamp
     last_update_time: u64,
     /// User rewards
-    user_rewards: std::collections::HashMap<[u8; 20], U256>,
+    user_rewards: HashMap<[u8; 20], U256>,
     /// User liquidity
-    user_liquidity: std::collections::HashMap<[u8; 20], i128>,
+    user_liquidity: HashMap<[u8; 20], i128>,
     /// User reward debt (used to calculate rewards correctly on liquidity changes)
-    user_reward_debt: std::collections::HashMap<[u8; 20], U256>,
+    user_reward_debt: HashMap<[u8; 20], U256>,
 }
 
 impl LiquidityMiningHook {
@@ -239,70 +241,75 @@ impl LiquidityMiningHook {
             reward_rate,
             accumulated_rewards_per_liquidity: U256::zero(),
             last_update_time: 0,
-            user_rewards: std::collections::HashMap::new(),
-            user_liquidity: std::collections::HashMap::new(),
-            user_reward_debt: std::collections::HashMap::new(),
+            user_rewards: HashMap::new(),
+            user_liquidity: HashMap::new(),
+            user_reward_debt: HashMap::new(),
         }
     }
     
-    /// Update the accumulated rewards
+    /// Update accumulated rewards
     fn update_accumulated_rewards(&mut self, total_liquidity: i128) {
         let current_time = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs();
             
-        // If this is the first update, just record the time
-        if self.last_update_time == 0 {
+        // If this is the first update or there's no liquidity, just update the timestamp
+        if self.last_update_time == 0 || total_liquidity <= 0 {
             self.last_update_time = current_time;
             return;
         }
         
-        // Only update if there is liquidity
+        // Calculate time elapsed since last update
+        let time_elapsed = current_time - self.last_update_time;
+        
+        // If no time has elapsed, nothing to do
+        if time_elapsed == 0 {
+            return;
+        }
+        
+        // Calculate rewards for this period
+        let rewards_this_period = self.reward_rate * U256::from(time_elapsed);
+        
+        // Distribute rewards across all liquidity
         if total_liquidity > 0 {
-            // Calculate time elapsed since last update
-            let time_elapsed = current_time - self.last_update_time;
-            
-            // Calculate rewards generated during this period
-            let rewards = self.reward_rate * U256::from(time_elapsed);
-            
-            // Update accumulated rewards per unit of liquidity
-            self.accumulated_rewards_per_liquidity += 
-                rewards / U256::from(total_liquidity as u128);
+            let rewards_per_liquidity = rewards_this_period / U256::from(total_liquidity as u128);
+            self.accumulated_rewards_per_liquidity += rewards_per_liquidity;
         }
         
         // Update last update time
         self.last_update_time = current_time;
     }
     
-    /// Update user rewards when their liquidity changes
+    /// Update user rewards
     fn update_user_rewards(&mut self, user: [u8; 20], liquidity_delta: i128, total_liquidity: i128) {
         // Update accumulated rewards first
         self.update_accumulated_rewards(total_liquidity);
         
         // Get current user liquidity
-        let user_liq = *self.user_liquidity.get(&user).unwrap_or(&0);
+        let current_liquidity = *self.user_liquidity.get(&user).unwrap_or(&0);
         
-        // Calculate pending rewards
-        if user_liq > 0 {
-            let pending_reward = U256::from(user_liq as u128) * self.accumulated_rewards_per_liquidity 
-                - *self.user_reward_debt.get(&user).unwrap_or(&U256::zero());
-                
-            // Add pending rewards to user's balance
+        // If user has liquidity, calculate pending rewards
+        if current_liquidity > 0 {
+            let pending_rewards = U256::from(current_liquidity as u128) * self.accumulated_rewards_per_liquidity;
+            let reward_debt = *self.user_reward_debt.get(&user).unwrap_or(&U256::zero());
+            let user_reward = pending_rewards - reward_debt;
+            
+            // Add pending rewards to user's total
             let current_rewards = *self.user_rewards.get(&user).unwrap_or(&U256::zero());
-            self.user_rewards.insert(user, current_rewards + pending_reward);
+            self.user_rewards.insert(user, current_rewards + user_reward);
         }
         
-        // Update user's liquidity
-        let new_liquidity = user_liq + liquidity_delta;
+        // Update user liquidity
+        let new_liquidity = current_liquidity + liquidity_delta;
         if new_liquidity > 0 {
             self.user_liquidity.insert(user, new_liquidity);
+            
             // Update reward debt
-            self.user_reward_debt.insert(
-                user, 
-                U256::from(new_liquidity as u128) * self.accumulated_rewards_per_liquidity
-            );
+            let new_reward_debt = U256::from(new_liquidity as u128) * self.accumulated_rewards_per_liquidity;
+            self.user_reward_debt.insert(user, new_reward_debt);
         } else {
+            // Remove user if no liquidity left
             self.user_liquidity.remove(&user);
             self.user_reward_debt.remove(&user);
         }
@@ -311,15 +318,13 @@ impl LiquidityMiningHook {
     /// Claim rewards for a user
     pub fn claim_rewards(&mut self, user: [u8; 20]) -> U256 {
         let rewards = *self.user_rewards.get(&user).unwrap_or(&U256::zero());
-        if !rewards.is_zero() {
-            self.user_rewards.insert(user, U256::zero());
-        }
+        self.user_rewards.insert(user, U256::zero());
         rewards
     }
 }
 
 impl Hook for LiquidityMiningHook {
-    // After liquidity is added, update the user's rewards
+    /// After liquidity is added, update user rewards
     fn after_add_liquidity(
         &mut self,
         sender: [u8; 20],
@@ -329,15 +334,16 @@ impl Hook for LiquidityMiningHook {
         _fees_accrued: &BalanceDelta,
         _hook_data: &[u8],
     ) -> StateResult<AfterHookResult> {
-        // Update user rewards - we use params.owner but could also use sender
-        // For simplicity, we're using the liquidity delta as the total liquidity here
-        // In a real implementation, we'd track total liquidity separately
-        self.update_user_rewards(params.owner, params.liquidity_delta, params.liquidity_delta);
+        // Calculate total liquidity before this user's change
+        let total_liquidity_before_change = self.user_liquidity.values().sum::<i128>();
+        
+        // Update user rewards
+        self.update_user_rewards(params.owner, params.liquidity_delta, total_liquidity_before_change);
         
         Ok(AfterHookResult::default())
     }
     
-    // After liquidity is removed, update the user's rewards
+    /// After liquidity is removed, update user rewards
     fn after_remove_liquidity(
         &mut self,
         sender: [u8; 20],
@@ -347,29 +353,88 @@ impl Hook for LiquidityMiningHook {
         _fees_accrued: &BalanceDelta,
         _hook_data: &[u8],
     ) -> StateResult<AfterHookResult> {
-        // Update user rewards - note that liquidity_delta is negative when removing
-        // For simplicity, we're using the liquidity delta as the total liquidity here
-        // In a real implementation, we'd track total liquidity separately
-        self.update_user_rewards(params.owner, params.liquidity_delta, -params.liquidity_delta);
+        // Calculate total liquidity before this user's change
+        let total_liquidity_before_change = self.user_liquidity.values().sum::<i128>();
+        
+        // Update user rewards
+        self.update_user_rewards(params.owner, params.liquidity_delta, total_liquidity_before_change);
         
         Ok(AfterHookResult::default())
     }
 }
 
-impl HookWithReturns for LiquidityMiningHook {
-    // After adding liquidity, we may want to return a delta to transfer rewards
-    fn after_add_liquidity_with_delta(
+impl HookWithReturns for LiquidityMiningHook {}
+
+/// A protocol fee collector hook that takes a portion of swap fees
+pub struct ProtocolFeeHook {
+    /// Protocol fee fraction (in basis points, e.g., 30 = 0.3%)
+    fee_fraction: u32,
+    /// Collected fees
+    collected_fees_0: u128,
+    collected_fees_1: u128,
+    /// Fee recipient
+    fee_recipient: [u8; 20],
+}
+
+impl ProtocolFeeHook {
+    /// Create a new protocol fee hook
+    pub fn new(fee_fraction: u32, fee_recipient: [u8; 20]) -> Self {
+        Self {
+            fee_fraction,
+            collected_fees_0: 0,
+            collected_fees_1: 0,
+            fee_recipient,
+        }
+    }
+    
+    /// Calculate protocol fee
+    fn calculate_protocol_fee(&self, amount: i128) -> i128 {
+        if amount <= 0 {
+            return 0;
+        }
+        
+        // Calculate fee (fee_fraction basis points)
+        (amount * self.fee_fraction as i128) / 10000
+    }
+    
+    /// Withdraw collected fees
+    pub fn withdraw_fees(&mut self) -> (u128, u128) {
+        let fees_0 = self.collected_fees_0;
+        let fees_1 = self.collected_fees_1;
+        
+        self.collected_fees_0 = 0;
+        self.collected_fees_1 = 0;
+        
+        (fees_0, fees_1)
+    }
+}
+
+impl Hook for ProtocolFeeHook {}
+
+impl HookWithReturns for ProtocolFeeHook {
+    /// After swap, collect protocol fees
+    fn after_swap_with_delta(
         &mut self,
         _sender: [u8; 20],
         _key: &PoolKey,
-        params: &ModifyLiquidityParams,
-        _delta: &BalanceDelta,
-        _fees_accrued: &BalanceDelta,
-        hook_data: &[u8],
-    ) -> StateResult<BalanceDelta> {
-        // In a real implementation, we might transfer rewards here
-        // For now, we'll just return a zero delta
-        Ok(BalanceDelta { amount0: 0, amount1: 0 })
+        _params: &SwapParams,
+        delta: &BalanceDelta,
+        _hook_data: &[u8],
+    ) -> StateResult<i128> {
+        // Calculate protocol fees
+        let fee_0 = self.calculate_protocol_fee(delta.amount0());
+        let fee_1 = self.calculate_protocol_fee(delta.amount1());
+        
+        // Update collected fees
+        if fee_0 > 0 {
+            self.collected_fees_0 += fee_0 as u128;
+        }
+        if fee_1 > 0 {
+            self.collected_fees_1 += fee_1 as u128;
+        }
+        
+        // Return total fee as delta in unspecified currency
+        Ok(fee_0 + fee_1)
     }
 }
 

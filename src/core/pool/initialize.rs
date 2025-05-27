@@ -33,7 +33,7 @@ pub fn initialize_pool(
                 key,
                 sqrt_price_x96,
                 &[]  // Empty hook data
-            ).map_err(PoolError::HookError)?;
+            ).map_err(PoolError::StateError)?;
         }
     }
     
@@ -50,7 +50,7 @@ pub fn initialize_pool(
                 sqrt_price_x96,
                 tick,
                 &[]  // Empty hook data
-            ).map_err(PoolError::HookError)?;
+            ).map_err(PoolError::StateError)?;
         }
     }
     

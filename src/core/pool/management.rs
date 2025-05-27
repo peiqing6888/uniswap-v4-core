@@ -1,7 +1,7 @@
 use crate::core::{
     state::{Pool, BalanceDelta, Result as StateResult},
     hooks::{
-        Hook, HookRegistry,
+        Hook, HookRegistry, HookError,
         hook_interface::PoolKey,
     },
 };
@@ -24,13 +24,18 @@ pub fn donate(
     let hook_address = Address::from_slice(&key.hooks);
     if hook_address != Address::zero() {
         if let Some(hook) = hook_registry.get_hook_mut(&key.hooks) {
-            hook.before_donate(
+            let hook_result = hook.before_donate(
                 sender.0,
                 key,
                 amount0,
                 amount1,
                 hook_data
-            ).map_err(|e| PoolError::HookError(e))?;
+            );
+            
+            // Handle hook result
+            if let Err(e) = hook_result {
+                return Err(PoolError::StateError(e));
+            }
         }
     }
     
@@ -40,13 +45,18 @@ pub fn donate(
     // Call hook after donate if available
     if hook_address != Address::zero() {
         if let Some(hook) = hook_registry.get_hook_mut(&key.hooks) {
-            hook.after_donate(
+            let hook_result = hook.after_donate(
                 sender.0,
                 key,
                 amount0,
                 amount1,
                 hook_data
-            ).map_err(|e| PoolError::HookError(e))?;
+            );
+            
+            // Handle hook result
+            if let Err(e) = hook_result {
+                return Err(PoolError::StateError(e));
+            }
         }
     }
     

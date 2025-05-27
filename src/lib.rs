@@ -12,9 +12,57 @@ pub mod core {
     pub use pool_manager::PoolManager;
     pub use flash_loan::*;
     pub use flash_loan::currency::Currency;
+    
+    // Re-export pool module items
+    pub use pool::{
+        initialize,
+        swap,
+        liquidity,
+        management,
+        fees,
+        state as pool_state,
+        PoolError,
+        Result as PoolResult,
+    };
+    
+    // Re-export hooks module items
+    pub use hooks::{
+        Hook,
+        HookWithReturns,
+        HookRegistry,
+        HookFlags,
+        HookPermissions,
+        BeforeHookResult,
+        AfterHookResult,
+        BeforeSwapDelta,
+        HookError,
+        HookResult,
+        is_dynamic_fee,
+        hook_interface,
+        examples,
+    };
+    
+    // Re-export state module items
+    pub use state::{
+        Pool,
+        BalanceDelta,
+        PositionKey,
+        StateError,
+        Result as StateResult,
+    };
+    
+    // Re-export math module items
+    pub use math::{
+        types::{SqrtPrice, Liquidity},
+        MathError,
+        Result as MathResult,
+    };
 }
 
-pub mod hooks;
+pub mod hooks {
+    pub use crate::core::hooks::*;
+}
+
 pub mod fees;
 pub mod bindings;
 pub mod tokens;

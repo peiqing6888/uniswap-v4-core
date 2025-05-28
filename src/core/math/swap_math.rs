@@ -50,10 +50,11 @@ impl SwapMath {
             return Ok(U256::zero());
         }
         
-        FullMath::mul_div_rounding_up(
+        // Calculate fee amount: amount * fee_pips / (1_000_000)
+        FullMath::mul_div(
             amount,
             U256::from(fee_pips),
-            U256::from(Self::MAX_SWAP_FEE - fee_pips),
+            U256::from(Self::FEE_DENOMINATOR),
         ).ok_or(MathError::Overflow)
     }
     
@@ -356,8 +357,8 @@ mod tests {
         let fee_pips = 3000; // 0.3%
 
         // Using more reasonable price and liquidity values
-        let current = SqrtPrice::new(U256::from(1) << 96); // 1.0 price
-        let target = SqrtPrice::new((U256::from(1) << 96) * U256::from(95) / U256::from(100)); // 0.95 price
+        let current = SqrtPrice::new(U256::from(1u64) << 96); // 1.0 price
+        let target = SqrtPrice::new((U256::from(1u64) << 96) * U256::from(95) / U256::from(100)); // 0.95 price
         let liquidity = Liquidity::new(1_000_000); // Larger liquidity value
         
         let result = SwapMath::compute_swap_step(

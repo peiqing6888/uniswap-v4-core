@@ -496,95 +496,134 @@
 <body>
     <a href="#components" class="skip-link">Skip to content</a>
     
-    <div class="neo-sidebar">
-        <div class="neo-sidebar-header">
-            <h1>Uniswap V4 Core</h1>
-            <p>Rust Implementation Documentation</p>
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <a href="index.html" class="top-nav-logo">
+            <div class="top-nav-logo-icon">U</div>
+            <span>Uniswap V4</span>
+        </a>
+        
+        <div class="top-nav-links">
+            <a href="index.html">Docs</a>
+            <a href="components.html" class="active">Components</a>
+            <a href="index.html#architecture">Architecture</a>
+            <a href="https://github.com/Uniswap/v4-core" target="_blank">GitHub</a>
         </div>
         
-        <nav class="neo-nav">
-            <div class="neo-nav-section">
-                <div class="neo-nav-section-title">Documentation</div>
-                <a href="index.html">Main Documentation</a>
-                <a href="components.html" class="active">UI Components</a>
-            </div>
+        <div class="top-nav-right">
+            <button class="search-button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Search</span>
+            </button>
             
-            <div class="neo-nav-section">
-                <div class="neo-nav-section-title">Components</div>
-                <a href="#alerts">Alerts</a>
-                <a href="#buttons">Buttons</a>
-                <a href="#cards">Cards</a>
-                <a href="#forms">Form Elements</a>
-                <a href="#navigation">Navigation</a>
-                <a href="#tables">Tables</a>
-                <a href="#accordion">Accordion</a>
-            </div>
-            
-            <div class="neo-nav-section">
-                <div class="neo-nav-section-title">Resources</div>
-                <a href="https://github.com/Uniswap/v4-core" target="_blank">GitHub Repository</a>
-            </div>
-        </nav>
+            <button class="theme-button" aria-label="Toggle dark mode">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.752 15.002C20.5633 15.4976 19.2879 15.7505 18 15.75C12.615 15.75 8.25 11.385 8.25 6C8.25 4.7145 8.5005 3.44175 8.998 2.248C5.29501 3.86433 2.75045 7.46709 2.75 11.5C2.75 16.885 7.115 21.25 12.5 21.25C16.5339 21.2491 20.1368 18.7028 21.752 15.002Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
         
-        <button class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
-    </div>
-    
-    <button class="mobile-menu-toggle" aria-label="Toggle menu">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    </button>
+        <button class="mobile-menu-toggle" aria-label="Toggle menu">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+    </nav>
 
-    <main class="neo-main">
-        <div class="neo-container">
-            <section id="components" class="neo-section">
-                <h2>Component Library</h2>
-                <p>This page showcases the Neobrutalism UI components used throughout the Uniswap V4 Core documentation. The design features a Klein Blue and Canary Yellow color scheme with bold borders, sharp shadows, and playful elements.</p>
-                
-                <div class="neo-search-container">
-                    <input type="text" class="neo-search" placeholder="Search components...">
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Components</div>
+                <nav class="sidebar-nav">
+                    <a href="#components" class="active">Overview</a>
+                    <a href="#alerts">Alerts</a>
+                    <a href="#buttons">Buttons</a>
+                    <a href="#cards">Cards</a>
+                    <a href="#forms">Form Elements</a>
+                    <a href="#navigation">Navigation</a>
+                    <a href="#tables">Tables</a>
+                    <a href="#accordion">Accordion</a>
+                </nav>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Documentation</div>
+                <nav class="sidebar-nav">
+                    <a href="index.html#overview">Overview</a>
+                    <a href="index.html#features">Features</a>
+                    <a href="index.html#architecture">Architecture</a>
+                    <a href="index.html#examples">Examples</a>
+                </nav>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Resources</div>
+                <nav class="sidebar-nav">
+                    <a href="https://github.com/Uniswap/v4-core" target="_blank">GitHub Repository</a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <section id="components" class="section">
+                <h2 class="section-title">Component Library</h2>
+                <div class="content">
+                    <p>This page showcases the Neobrutalism UI components used throughout the Uniswap V4 Core documentation. The design features a Klein Blue and Canary Yellow color scheme with bold borders, sharp shadows, and playful elements.</p>
+                    
+                    <div class="neo-card">
+                        <h4>Using Components</h4>
+                        <p>Each component includes example code that you can copy and use in your own projects. The components are styled with CSS variables that can be customized to match your brand colors.</p>
+                    </div>
                 </div>
             </section>
 
-            <section id="alerts" class="neo-section">
-                <h2>Alerts</h2>
-                <p>Alert components are used to display important messages to the user.</p>
-                
-                <div class="alert alert-success">
-                    <div class="alert-icon">✓</div>
-                    <div class="alert-content">
-                        <h4>Success</h4>
-                        <p>Operation completed successfully! The hook has been registered.</p>
+            <section id="alerts" class="section">
+                <h2 class="section-title">Alerts</h2>
+                <div class="content">
+                    <p>Alert components are used to display important messages to the user.</p>
+                    
+                    <div class="neo-card">
+                        <div class="alert alert-success">
+                            <div class="alert-icon">✓</div>
+                            <div class="alert-content">
+                                <h4>Success</h4>
+                                <p>Operation completed successfully! The hook has been registered.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <div class="alert-icon">!</div>
+                            <div class="alert-content">
+                                <h4>Warning</h4>
+                                <p>Be careful when setting protocol fees. High values may impact trading volume.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-error">
+                            <div class="alert-icon">×</div>
+                            <div class="alert-content">
+                                <h4>Error</h4>
+                                <p>Failed to initialize pool. Check that all parameters are valid.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <div class="alert-icon">i</div>
+                            <div class="alert-content">
+                                <h4>Information</h4>
+                                <p>Flash loans allow you to borrow assets without collateral as long as you return them within the same transaction.</p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="alert alert-warning">
-                    <div class="alert-icon">!</div>
-                    <div class="alert-content">
-                        <h4>Warning</h4>
-                        <p>Be careful when setting protocol fees. High values may impact trading volume.</p>
-                    </div>
-                </div>
-                
-                <div class="alert alert-error">
-                    <div class="alert-icon">×</div>
-                    <div class="alert-content">
-                        <h4>Error</h4>
-                        <p>Failed to initialize pool. Check that all parameters are valid.</p>
-                    </div>
-                </div>
-                
-                <div class="alert alert-info">
-                    <div class="alert-icon">i</div>
-                    <div class="alert-content">
-                        <h4>Information</h4>
-                        <p>Flash loans allow you to borrow assets without collateral as long as you return them within the same transaction.</p>
-                    </div>
-                </div>
-                
-                <div class="code-block">
+                    
+                    <div class="code-block">
+                        <button class="code-copy">Copy</button>
 <div class="alert alert-success">
     <div class="alert-icon">✓</div>
     <div class="alert-content">
@@ -600,57 +639,63 @@
         <p>Be careful when setting protocol fees.</p>
     </div>
 </div>
+                    </div>
                 </div>
             </section>
 
-            <section id="buttons" class="neo-section">
-                <h2>Buttons</h2>
-                <p>Buttons with Neobrutalism styling featuring bold borders and shadows.</p>
-                
-                <div class="button-container">
-                    <button class="neo-button">Primary Button</button>
-                    <button class="neo-button neo-button-secondary">Secondary Button</button>
-                    <button class="neo-button neo-button-outline">Outline Button</button>
-                    <button class="neo-button neo-button-small">Small Button</button>
-                    <button class="neo-button neo-button-large">Large Button</button>
-                    <button class="neo-button neo-button-anim">Animated Button</button>
-                </div>
-                
-                <div class="code-block">
+            <section id="buttons" class="section">
+                <h2 class="section-title">Buttons</h2>
+                <div class="content">
+                    <p>Buttons with Neobrutalism styling featuring bold borders and shadows.</p>
+                    
+                    <div class="neo-card">
+                        <button class="neo-button">Primary Button</button>
+                        <button class="neo-button neo-button-secondary">Secondary Button</button>
+                        <button class="neo-button neo-button-outline">Outline Button</button>
+                        <button class="neo-button neo-button-small">Small Button</button>
+                        <button class="neo-button neo-button-large">Large Button</button>
+                        <button class="neo-button neo-button-anim">Animated Button</button>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="code-copy">Copy</button>
 <button class="neo-button">Primary Button</button>
 <button class="neo-button neo-button-secondary">Secondary Button</button>
 <button class="neo-button neo-button-outline">Outline Button</button>
 <button class="neo-button neo-button-small">Small Button</button>
 <button class="neo-button neo-button-large">Large Button</button>
 <button class="neo-button neo-button-anim">Animated Button</button>
+                    </div>
                 </div>
             </section>
 
-            <section id="cards" class="neo-section">
-                <h2>Cards</h2>
-                <p>Card components for displaying grouped content.</p>
-                
-                <div class="neo-grid">
-                    <div class="neo-card">
-                        <h4>Standard Card</h4>
-                        <p>This is a standard card component used to group related content.</p>
-                        <button class="neo-button neo-button-small">Learn More</button>
+            <section id="cards" class="section">
+                <h2 class="section-title">Cards</h2>
+                <div class="content">
+                    <p>Card components for displaying grouped content.</p>
+                    
+                    <div class="neo-grid">
+                        <div class="neo-card">
+                            <h4>Standard Card</h4>
+                            <p>This is a standard card component used to group related content.</p>
+                            <button class="neo-button neo-button-small">Learn More</button>
+                        </div>
+                        
+                        <div class="feature-box">
+                            <h4>Feature Box</h4>
+                            <p>Feature boxes highlight important features with a colored background.</p>
+                            <button class="neo-button neo-button-small">Explore</button>
+                        </div>
+                        
+                        <div class="neo-card highlight-card">
+                            <h4>Highlighted Card</h4>
+                            <p>This card has additional styling to make it stand out.</p>
+                            <button class="neo-button neo-button-small">View Details</button>
+                        </div>
                     </div>
                     
-                    <div class="feature-box">
-                        <h4>Feature Box</h4>
-                        <p>Feature boxes highlight important features with a colored background.</p>
-                        <button class="neo-button neo-button-small">Explore</button>
-                    </div>
-                    
-                    <div class="neo-card highlight-card">
-                        <h4>Highlighted Card</h4>
-                        <p>This card has additional styling to make it stand out.</p>
-                        <button class="neo-button neo-button-small">View Details</button>
-                    </div>
-                </div>
-                
-                <div class="code-block">
+                    <div class="code-block">
+                        <button class="code-copy">Copy</button>
 <div class="neo-card">
     <h4>Standard Card</h4>
     <p>This is a standard card component used to group related content.</p>
@@ -662,57 +707,62 @@
     <p>Feature boxes highlight important features with a colored background.</p>
     <button class="neo-button neo-button-small">Explore</button>
 </div>
+                    </div>
                 </div>
             </section>
 
-            <section id="forms" class="neo-section">
-                <h2>Form Elements</h2>
-                <p>Form elements styled with Neobrutalism design principles.</p>
-                
-                <div class="form-group">
-                    <label for="text-input">Text Input</label>
-                    <input type="text" id="text-input" class="neo-input" placeholder="Enter text...">
-                </div>
-                
-                <div class="form-group">
-                    <label for="select-input">Select Dropdown</label>
-                    <select id="select-input" class="neo-select">
-                        <option value="">Select an option</option>
-                        <option value="1">Option 1</option>
-                        <option value="2">Option 2</option>
-                        <option value="3">Option 3</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="neo-checkbox-container">
-                        <input type="checkbox">
-                        <span class="neo-checkbox"></span>
-                        Checkbox Option
-                    </label>
-                </div>
-                
-                <div class="form-group">
-                    <label class="neo-radio-container">
-                        <input type="radio" name="radio-group">
-                        <span class="neo-radio"></span>
-                        Radio Option 1
-                    </label>
-                    <label class="neo-radio-container">
-                        <input type="radio" name="radio-group">
-                        <span class="neo-radio"></span>
-                        Radio Option 2
-                    </label>
-                </div>
-                
-                <div class="code-block">
+            <section id="forms" class="section">
+                <h2 class="section-title">Form Elements</h2>
+                <div class="content">
+                    <p>Form elements styled with Neobrutalism design principles.</p>
+                    
+                    <div class="neo-card">
+                        <div class="form-group">
+                            <label for="text-input" class="neo-label">Text Input</label>
+                            <input type="text" id="text-input" class="neo-input" placeholder="Enter text...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="select-input" class="neo-label">Select Dropdown</label>
+                            <select id="select-input" class="neo-select">
+                                <option value="">Select an option</option>
+                                <option value="1">Option 1</option>
+                                <option value="2">Option 2</option>
+                                <option value="3">Option 3</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="neo-checkbox-container">
+                                <input type="checkbox" class="neo-checkbox">
+                                <span class="checkmark"></span>
+                                Checkbox Option
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="neo-radio-container">
+                                <input type="radio" name="radio-group" class="neo-radio">
+                                <span class="checkmark"></span>
+                                Radio Option 1
+                            </label>
+                            <label class="neo-radio-container">
+                                <input type="radio" name="radio-group" class="neo-radio">
+                                <span class="checkmark"></span>
+                                Radio Option 2
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="code-copy">Copy</button>
 <div class="form-group">
-    <label for="text-input">Text Input</label>
+    <label for="text-input" class="neo-label">Text Input</label>
     <input type="text" id="text-input" class="neo-input" placeholder="Enter text...">
 </div>
 
 <div class="form-group">
-    <label for="select-input">Select Dropdown</label>
+    <label for="select-input" class="neo-label">Select Dropdown</label>
     <select id="select-input" class="neo-select">
         <option value="">Select an option</option>
         <option value="1">Option 1</option>
@@ -722,52 +772,57 @@
 
 <div class="form-group">
     <label class="neo-checkbox-container">
-        <input type="checkbox">
-        <span class="neo-checkbox"></span>
+        <input type="checkbox" class="neo-checkbox">
+        <span class="checkmark"></span>
         Checkbox Option
     </label>
 </div>
+                    </div>
                 </div>
             </section>
 
-            <section id="navigation" class="neo-section">
-                <h2>Navigation</h2>
-                <p>Navigation components for user interface navigation.</p>
-                
-                <div class="neo-tabs">
-                    <div class="neo-tab active">Tab 1</div>
-                    <div class="neo-tab">Tab 2</div>
-                    <div class="neo-tab">Tab 3</div>
-                </div>
-                
-                <div class="neo-tab-content">
-                    <p>This is the content for Tab 1. You can switch between tabs to view different content.</p>
-                </div>
-                
-                <div class="neo-badge-container">
-                    <h4>Badges</h4>
-                    <span class="neo-badge">Default</span>
-                    <span class="neo-badge yellow">Yellow</span>
-                    <span class="neo-badge">New</span>
-                    <span class="neo-badge">v4.0</span>
-                </div>
-                
-                <div class="neo-tooltip-container">
-                    <h4>Tooltips</h4>
-                    <div class="tooltip">
-                        Hover over me
-                        <span class="tooltip-text">This is a tooltip with additional information!</span>
+            <section id="navigation" class="section">
+                <h2 class="section-title">Navigation</h2>
+                <div class="content">
+                    <p>Navigation components for user interface navigation.</p>
+                    
+                    <div class="neo-card">
+                        <div class="neo-tabs">
+                            <div class="neo-tab active">Tab 1</div>
+                            <div class="neo-tab">Tab 2</div>
+                            <div class="neo-tab">Tab 3</div>
+                        </div>
+                        
+                        <div class="neo-tab-content">
+                            <p>This is the content for Tab 1. You can switch between tabs to view different content.</p>
+                        </div>
+                        
+                        <div class="neo-badge-container">
+                            <h4>Badges</h4>
+                            <span class="neo-badge">Default</span>
+                            <span class="neo-badge yellow">Yellow</span>
+                            <span class="neo-badge">New</span>
+                            <span class="neo-badge">v4.0</span>
+                        </div>
+                        
+                        <div class="neo-tooltip-container">
+                            <h4>Tooltips</h4>
+                            <div class="neo-tooltip">
+                                Hover over me
+                                <span class="tooltip-text">This is a tooltip with additional information!</span>
+                            </div>
+                        </div>
+                        
+                        <div class="neo-progress-container">
+                            <h4>Progress Bar</h4>
+                            <div class="neo-progress">
+                                <div class="neo-progress-bar" style="width: 75%;">75%</div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="neo-progress-container">
-                    <h4>Progress Bar</h4>
-                    <div class="neo-progress">
-                        <div class="neo-progress-bar" style="width: 75%;">75%</div>
-                    </div>
-                </div>
-                
-                <div class="code-block">
+                    
+                    <div class="code-block">
+                        <button class="code-copy">Copy</button>
 <div class="neo-tabs">
     <div class="neo-tab active">Tab 1</div>
     <div class="neo-tab">Tab 2</div>
@@ -780,50 +835,55 @@
     <span class="neo-badge">New</span>
 </div>
 
-<div class="tooltip">
+<div class="neo-tooltip">
     Hover over me
     <span class="tooltip-text">This is a tooltip!</span>
 </div>
+                    </div>
                 </div>
             </section>
 
-            <section id="tables" class="neo-section">
-                <h2>Tables</h2>
-                <p>Tables for displaying structured data with Neobrutalism styling.</p>
-                
-                <table class="neo-table">
-                    <thead>
-                        <tr>
-                            <th>Feature</th>
-                            <th>Description</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Enhanced Hook System</td>
-                            <td>Customizable hooks for dynamic fee adjustment</td>
-                            <td><span class="neo-badge">Implemented</span></td>
-                        </tr>
-                        <tr>
-                            <td>Protocol Fee System</td>
-                            <td>Flexible fee collection mechanism</td>
-                            <td><span class="neo-badge">Implemented</span></td>
-                        </tr>
-                        <tr>
-                            <td>ERC6909 Token Standard</td>
-                            <td>Multi-token standard for liquidity positions</td>
-                            <td><span class="neo-badge">Implemented</span></td>
-                        </tr>
-                        <tr>
-                            <td>Flash Loans</td>
-                            <td>Built-in flash loan functionality</td>
-                            <td><span class="neo-badge yellow">In Progress</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                <div class="code-block">
+            <section id="tables" class="section">
+                <h2 class="section-title">Tables</h2>
+                <div class="content">
+                    <p>Tables for displaying structured data with Neobrutalism styling.</p>
+                    
+                    <div class="neo-card">
+                        <table class="neo-table">
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Enhanced Hook System</td>
+                                    <td>Customizable hooks for dynamic fee adjustment</td>
+                                    <td><span class="neo-badge">Implemented</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Protocol Fee System</td>
+                                    <td>Flexible fee collection mechanism</td>
+                                    <td><span class="neo-badge">Implemented</span></td>
+                                </tr>
+                                <tr>
+                                    <td>ERC6909 Token Standard</td>
+                                    <td>Multi-token standard for liquidity positions</td>
+                                    <td><span class="neo-badge">Implemented</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Flash Loans</td>
+                                    <td>Built-in flash loan functionality</td>
+                                    <td><span class="neo-badge yellow">In Progress</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="code-block">
+                        <button class="code-copy">Copy</button>
 <table class="neo-table">
     <thead>
         <tr>
@@ -845,46 +905,51 @@
         </tr>
     </tbody>
 </table>
+                    </div>
                 </div>
             </section>
 
-            <section id="accordion" class="neo-section">
-                <h2>Accordion</h2>
-                <p>Accordion components for collapsible content sections.</p>
-                
-                <div class="neo-accordion">
-                    <div class="neo-accordion-item active">
-                        <div class="neo-accordion-header">
-                            <span>What is Uniswap V4?</span>
-                            <span class="accordion-icon">▼</span>
-                        </div>
-                        <div class="neo-accordion-content">
-                            <p>Uniswap V4 is the latest version of the Uniswap protocol, featuring a new architecture with hooks, singleton contracts, and native flash loans. This Rust implementation provides an alternative to the original Solidity implementation while maintaining full API compatibility.</p>
+            <section id="accordion" class="section">
+                <h2 class="section-title">Accordion</h2>
+                <div class="content">
+                    <p>Accordion components for collapsible content sections.</p>
+                    
+                    <div class="neo-card">
+                        <div class="neo-accordion">
+                            <div class="neo-accordion-item active">
+                                <div class="neo-accordion-header">
+                                    <span>What is Uniswap V4?</span>
+                                    <span class="accordion-icon">▼</span>
+                                </div>
+                                <div class="neo-accordion-content">
+                                    <p>Uniswap V4 is the latest version of the Uniswap protocol, featuring a new architecture with hooks, singleton contracts, and native flash loans. This Rust implementation provides an alternative to the original Solidity implementation while maintaining full API compatibility.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="neo-accordion-item">
+                                <div class="neo-accordion-header">
+                                    <span>How do hooks work?</span>
+                                    <span class="accordion-icon">▼</span>
+                                </div>
+                                <div class="neo-accordion-content">
+                                    <p>Hooks in Uniswap V4 are customizable components that can modify the behavior of pools. They can dynamically adjust fees, collect protocol fees, reward liquidity providers, and more. Hooks are registered with the pool manager and are called at specific points during swap and liquidity operations.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="neo-accordion-item">
+                                <div class="neo-accordion-header">
+                                    <span>What are Flash Loans?</span>
+                                    <span class="accordion-icon">▼</span>
+                                </div>
+                                <div class="neo-accordion-content">
+                                    <p>Flash loans are uncollateralized loans that must be borrowed and repaid within a single transaction. They allow users to access liquidity without upfront capital, as long as the borrowed amount (plus any fees) is returned before the transaction completes.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="neo-accordion-item">
-                        <div class="neo-accordion-header">
-                            <span>How do hooks work?</span>
-                            <span class="accordion-icon">▼</span>
-                        </div>
-                        <div class="neo-accordion-content">
-                            <p>Hooks in Uniswap V4 are customizable components that can modify the behavior of pools. They can dynamically adjust fees, collect protocol fees, reward liquidity providers, and more. Hooks are registered with the pool manager and are called at specific points during swap and liquidity operations.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="neo-accordion-item">
-                        <div class="neo-accordion-header">
-                            <span>What are Flash Loans?</span>
-                            <span class="accordion-icon">▼</span>
-                        </div>
-                        <div class="neo-accordion-content">
-                            <p>Flash loans are uncollateralized loans that must be borrowed and repaid within a single transaction. They allow users to access liquidity without upfront capital, as long as the borrowed amount (plus any fees) is returned before the transaction completes.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="code-block">
+                    <div class="code-block">
+                        <button class="code-copy">Copy</button>
 <div class="neo-accordion">
     <div class="neo-accordion-item">
         <div class="neo-accordion-header">
@@ -906,14 +971,11 @@
         </div>
     </div>
 </div>
+                    </div>
                 </div>
             </section>
-        </div>
-    </main>
-    
-    <!-- Add Prism.js for code highlighting -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+        </main>
+    </div>
     
     <!-- Custom JavaScript -->
     <script src="scripts.js"></script>

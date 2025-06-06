@@ -1,0 +1,994 @@
+/* Additional styling for Uniswap V4 Core Documentation */
+/* Using Klein Blue and Canary Yellow as the primary colors */
+
+/* Animation for feature boxes */
+.feature-box {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 8px 8px 0 var(--black);
+}
+
+/* Animation for the navigation menu */
+.menu a {
+    transition: color 0.3s ease;
+}
+
+.menu a:hover {
+    color: var(--canary-yellow);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gray);
+    border: 1px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--klein-blue);
+    border: 2px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-blue);
+}
+
+/* Code highlighting */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+    color: #6a9955;
+}
+
+.token.punctuation {
+    color: #d4d4d4;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+    color: #b5cea8;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+    color: #ce9178;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+    color: #d4d4d4;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+    color: #569cd6;
+}
+
+.token.function,
+.token.class-name {
+    color: #dcdcaa;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+    color: #d16969;
+}
+
+/* Mobile adjustments */
+@media (max-width: 576px) {
+    .menu {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .neo-button {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .neo-header h1 {
+        font-size: 1.75rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .neo-button, 
+    .menu {
+        display: none;
+    }
+    
+    .neo-header, 
+    .neo-section, 
+    .neo-card, 
+    .feature-box {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    body {
+        font-size: 12pt;
+    }
+    
+    h1 {
+        font-size: 18pt;
+    }
+    
+    h2 {
+        font-size: 16pt;
+    }
+    
+    h3 {
+        font-size: 14pt;
+    }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --white: #121212;
+        --gray: #232323;
+        --dark-gray: #333333;
+        --black: #000000;
+    }
+    
+    body {
+        color: #f0f0f0;
+    }
+    
+    .neo-section,
+    .neo-card {
+        background-color: #1a1a1a;
+    }
+    
+    code {
+        background-color: #2a2a2a;
+        color: #f0f0f0;
+    }
+    
+    .feature-box {
+        color: var(--black);
+    }
+}
+
+/* Button animations */
+.neo-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.neo-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.neo-button:hover::after {
+    transform: translateX(0);
+}
+
+/* Tooltip styles */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.5rem 1rem;
+    background-color: var(--dark-blue);
+    color: var(--white);
+    border: 2px solid var(--black);
+    box-shadow: 3px 3px 0 var(--black);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateX(-50%) translateY(10px);
+    z-index: 100;
+}
+
+[data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Special classes for highlighting */
+.important-note {
+    background-color: var(--canary-yellow);
+    padding: 1rem;
+    border-left: 5px solid var(--dark-yellow);
+    margin: 1.5rem 0;
+}
+
+.important-note::before {
+    content: "⚠️ Important: ";
+    font-weight: bold;
+}
+
+.example-label {
+    display: inline-block;
+    background-color: var(--klein-blue);
+    color: var(--white);
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    margin-right: 0.5rem;
+}
+
+/* Focus styles for accessibility */
+a:focus,
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+    outline: 3px solid var(--canary-yellow);
+    outline-offset: 2px;
+}
+
+/* Skip to content link for accessibility */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--klein-blue);
+    color: var(--white);
+    padding: 8px;
+    z-index: 100;
+    transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+:root {
+    /* Klein Blue and Canary Yellow color scheme */
+    --klein-blue: #002FA7;
+    --canary-yellow: #FFEF00;
+    --dark-blue: #001D66;
+    --light-blue: #4F75D8;
+    --dark-yellow: #FFD100;
+    --light-yellow: #FFF7A0;
+    --black: #000000;
+    --white: #FFFFFF;
+    --gray: #F0F0F0;
+    --dark-gray: #333333;
+    --code-bg: #1E1E1E;
+    --border-width: 4px;
+    --shadow-offset: 8px;
+    --border-radius: 0px;
+}
+
+/* Dark mode colors */
+.dark-mode {
+    --klein-blue: #4F75D8;
+    --canary-yellow: #FFD100;
+    --dark-blue: #7D9AE6;
+    --light-blue: #A0B5EC;
+    --dark-yellow: #FFEF00;
+    --light-yellow: #FFFACC;
+    --black: #FFFFFF;
+    --white: #121212;
+    --gray: #2A2A2A;
+    --dark-gray: #E0E0E0;
+    --code-bg: #2D2D2D;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 2rem;
+}
+
+body {
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: var(--white);
+    color: var(--black);
+    line-height: 1.6;
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--gray);
+    border-left: 2px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--klein-blue);
+    border: 2px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-blue);
+}
+
+/* Skip link for accessibility */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background-color: var(--canary-yellow);
+    color: var(--black);
+    padding: 8px;
+    z-index: 100;
+    border: var(--border-width) solid var(--black);
+    font-weight: bold;
+    transition: top 0.3s;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* Layout styles for sidebar and main content */
+.neo-sidebar {
+    width: 280px;
+    background-color: var(--klein-blue);
+    color: var(--white);
+    padding: 2rem 1rem;
+    border-right: var(--border-width) solid var(--black);
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+    transition: transform 0.3s ease;
+}
+
+.neo-sidebar-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--canary-yellow);
+}
+
+.neo-sidebar-header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: var(--white);
+}
+
+.neo-sidebar-header p {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.neo-main {
+    flex: 1;
+    margin-left: 280px;
+    padding: 2rem;
+    max-width: calc(100% - 280px);
+}
+
+/* Navigation menu styles */
+.neo-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.neo-nav-section {
+    margin-bottom: 1.5rem;
+}
+
+.neo-nav-section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--canary-yellow);
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+}
+
+.neo-nav a {
+    color: var(--white);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: block;
+    position: relative;
+}
+
+.neo-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.neo-nav a.active {
+    background-color: var(--canary-yellow);
+    color: var(--black);
+    font-weight: 700;
+    box-shadow: 4px 4px 0 var(--black);
+    border: 2px solid var(--black);
+}
+
+/* Neobrutalism styling */
+.neo-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.neo-section {
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background-color: var(--white);
+    border: var(--border-width) solid var(--black);
+    box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--black);
+    position: relative;
+}
+
+.neo-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--klein-blue);
+    border-bottom: var(--border-width) solid var(--black);
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.neo-section h3 {
+    font-size: 1.75rem;
+    margin: 1.5rem 0 1rem;
+    color: var(--dark-blue);
+}
+
+.neo-section p {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.neo-section ul, .neo-section ol {
+    margin-left: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.neo-section li {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Button styles */
+.neo-button {
+    display: inline-block;
+    background-color: var(--canary-yellow);
+    color: var(--black);
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border: var(--border-width) solid var(--black);
+    box-shadow: 5px 5px 0 var(--black);
+    text-decoration: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    margin-right: 1rem;
+    margin-bottom: 1rem;
+}
+
+.neo-button:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 3px 3px 0 var(--black);
+}
+
+.neo-button:active {
+    transform: translate(5px, 5px);
+    box-shadow: none;
+}
+
+/* Button animations */
+.neo-button-anim {
+    position: relative;
+    overflow: hidden;
+}
+
+.neo-button-anim:after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: -100%;
+    background: rgba(255, 255, 255, 0.2);
+    transition: left 0.3s;
+}
+
+.neo-button-anim:hover:after {
+    left: 100%;
+}
+
+/* Card styles */
+.neo-card {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 3px solid var(--black);
+    box-shadow: 5px 5px 0 var(--black);
+    background-color: var(--gray);
+}
+
+.neo-card h4 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+    color: var(--dark-blue);
+}
+
+.neo-card p {
+    font-size: 1rem;
+}
+
+/* Grid layout */
+.neo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Feature box */
+.feature-box {
+    background-color: var(--canary-yellow);
+    padding: 1.5rem;
+    border: 3px solid var(--black);
+    box-shadow: 5px 5px 0 var(--black);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-box:hover {
+    transform: translate(3px, 3px);
+    box-shadow: 2px 2px 0 var(--black);
+}
+
+.feature-box h4 {
+    color: var(--klein-blue);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--black);
+    padding-bottom: 0.5rem;
+}
+
+/* Code styles */
+code {
+    font-family: 'Fira Code', monospace;
+    background-color: var(--gray);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9rem;
+}
+
+pre {
+    background-color: var(--code-bg);
+    color: var(--white);
+    padding: 1.5rem;
+    overflow-x: auto;
+    border: 3px solid var(--black);
+    margin-bottom: 1.5rem;
+}
+
+pre code {
+    background-color: transparent;
+    color: var(--white);
+    padding: 0;
+}
+
+.code-block {
+    background-color: var(--code-bg);
+    color: var(--white);
+    padding: 1.5rem;
+    border: 3px solid var(--black);
+    box-shadow: 5px 5px 0 var(--black);
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    font-family: 'Fira Code', monospace;
+    position: relative;
+}
+
+.code-copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: var(--canary-yellow);
+    color: var(--black);
+    border: 2px solid var(--black);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+}
+
+.code-copy-btn:hover {
+    background-color: var(--dark-yellow);
+}
+
+/* Highlight */
+.highlight {
+    background-color: var(--canary-yellow);
+    padding: 0 0.3rem;
+    font-weight: 700;
+}
+
+/* Tooltip */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 2px dotted var(--klein-blue);
+    cursor: help;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: var(--black);
+    color: var(--white);
+    text-align: center;
+    border-radius: 0;
+    border: 2px solid var(--canary-yellow);
+    padding: 0.5rem;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Important note */
+.important-note {
+    background-color: var(--light-yellow);
+    border-left: 5px solid var(--canary-yellow);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+/* Example label */
+.example-label {
+    display: inline-block;
+    background-color: var(--klein-blue);
+    color: var(--white);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    border: 2px solid var(--black);
+}
+
+/* Focus styles for accessibility */
+a:focus, button:focus, input:focus, select:focus, textarea:focus {
+    outline: 3px solid var(--canary-yellow);
+    outline-offset: 2px;
+}
+
+/* Theme toggle and mobile menu */
+.theme-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    color: var(--white);
+}
+
+.mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 200;
+    background-color: var(--canary-yellow);
+    color: var(--black);
+    border: 3px solid var(--black);
+    padding: 0.5rem;
+    cursor: pointer;
+}
+
+/* Badge styles */
+.neo-badge {
+    display: inline-block;
+    background-color: var(--klein-blue);
+    color: var(--white);
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border: 2px solid var(--black);
+    font-weight: 700;
+    margin-right: 0.5rem;
+}
+
+.neo-badge.yellow {
+    background-color: var(--canary-yellow);
+    color: var(--black);
+}
+
+/* Search box */
+.neo-search {
+    width: 100%;
+    padding: 0.75rem;
+    border: 3px solid var(--black);
+    background-color: var(--white);
+    margin-bottom: 1.5rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+}
+
+.neo-search:focus {
+    border-color: var(--canary-yellow);
+    box-shadow: 3px 3px 0 var(--black);
+}
+
+/* Table styles */
+.neo-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+    border: 3px solid var(--black);
+}
+
+.neo-table th, .neo-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border: 2px solid var(--black);
+}
+
+.neo-table th {
+    background-color: var(--klein-blue);
+    color: var(--white);
+    font-weight: 700;
+}
+
+.neo-table tr:nth-child(even) {
+    background-color: var(--gray);
+}
+
+/* Accordion */
+.neo-accordion {
+    margin-bottom: 1.5rem;
+}
+
+.neo-accordion-item {
+    border: 3px solid var(--black);
+    margin-bottom: 0.5rem;
+}
+
+.neo-accordion-header {
+    padding: 1rem;
+    background-color: var(--canary-yellow);
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.neo-accordion-content {
+    padding: 1rem;
+    background-color: var(--white);
+    display: none;
+}
+
+.neo-accordion-item.active .neo-accordion-content {
+    display: block;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .neo-sidebar {
+        transform: translateX(-100%);
+        width: 250px;
+    }
+    
+    .neo-sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .neo-main {
+        margin-left: 0;
+        max-width: 100%;
+        padding: 1rem;
+    }
+    
+    .mobile-menu-toggle {
+        display: block;
+    }
+
+    .neo-section h2 {
+        font-size: 1.75rem;
+    }
+    
+    .neo-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .neo-button {
+        display: block;
+        width: 100%;
+        margin-right: 0;
+        text-align: center;
+    }
+}
+
+/* Dark mode toggle */
+.dark-mode-toggle {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--canary-yellow);
+    color: var(--black);
+    border: 3px solid var(--black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 100;
+    box-shadow: 4px 4px 0 var(--black);
+}
+
+.dark-mode-toggle:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--black);
+}
+
+/* Dark mode adjustments */
+.dark-mode .neo-section {
+    background-color: var(--white);
+}
+
+.dark-mode .feature-box {
+    background-color: var(--dark-yellow);
+}
+
+.dark-mode .neo-card {
+    background-color: var(--gray);
+}
+
+.dark-mode .neo-button {
+    background-color: var(--canary-yellow);
+    color: var(--black);
+}
+
+.dark-mode .highlight {
+    background-color: var(--dark-yellow);
+    color: var(--black);
+}
+
+.dark-mode .important-note {
+    background-color: var(--gray);
+    border-left-color: var(--dark-yellow);
+}
+
+.dark-mode code {
+    background-color: var(--gray);
+    color: var(--black);
+}
+
+.dark-mode .code-block {
+    background-color: var(--code-bg);
+}
+
+.dark-mode .neo-sidebar {
+    background-color: var(--dark-blue);
+}
+
+/* Architecture diagram styles */
+.architecture-diagram {
+    margin: 3rem 0;
+    padding: 0;
+}
+
+.diagram-container {
+    background-color: var(--dark-blue);
+    border: var(--border-width) solid var(--black);
+    box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--black);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    height: 500px;
+}
+
+.diagram-container svg {
+    height: 100%;
+    width: 100%;
+}
+
+.neo-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    border: 3px solid var(--black);
+}
+
+.diagram-caption {
+    margin-top: 1.5rem;
+    font-size: 1rem;
+    color: var(--white);
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Dark mode adjustments for diagram */
+.dark-mode .diagram-container {
+    background-color: var(--dark-blue);
+}
+
+.dark-mode .diagram-container svg rect[fill="#05101e"] {
+    fill: #121212;
+}
+
+.dark-mode .diagram-container svg path {
+    stroke: var(--canary-yellow);
+}
+
+.dark-mode .diagram-caption {
+    color: var(--white);
+}
+
+/* Responsive adjustments for the diagram */
+@media (max-width: 768px) {
+    .diagram-container {
+        padding: 1rem;
+        height: 400px;
+    }
+    
+    .diagram-caption {
+        font-size: 0.9rem;
+    }
+} 

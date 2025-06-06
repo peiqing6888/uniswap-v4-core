@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Components - Uniswap V4 Core Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            /* Klein Blue and Canary Yellow color scheme */
+            --klein-blue: #002FA7;
+            --canary-yellow: #FFEF00;
+            --dark-blue: #001D66;
+            --light-blue: #4F75D8;
+            --dark-yellow: #FFD100;
+            --light-yellow: #FFF7A0;
+            --black: #000000;
+            --white: #FFFFFF;
+            --gray: #F0F0F0;
+            --dark-gray: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+        }
+
+        .neo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .neo-header {
+            background-color: var(--klein-blue);
+            color: var(--white);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 4px solid var(--black);
+            box-shadow: 8px 8px 0 var(--black);
+            position: relative;
+        }
+
+        .neo-header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .neo-section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background-color: var(--white);
+            border: 4px solid var(--black);
+            box-shadow: 8px 8px 0 var(--black);
+            position: relative;
+        }
+
+        .neo-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--klein-blue);
+            border-bottom: 4px solid var(--black);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .neo-section h3 {
+            font-size: 1.75rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--dark-blue);
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        .component-card {
+            padding: 1.5rem;
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0 var(--black);
+        }
+
+        .component-card h3 {
+            color: var(--klein-blue);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .component-card .component-display {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background-color: var(--gray);
+            border: 2px solid var(--black);
+        }
+
+        .component-card .component-code {
+            background-color: var(--dark-gray);
+            color: var(--white);
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            border: 2px solid var(--black);
+        }
+
+        /* Button Components */
+        .neo-btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0 var(--black);
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            text-decoration: none;
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .neo-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0 var(--black);
+        }
+
+        .neo-btn:active {
+            transform: translate(5px, 5px);
+            box-shadow: none;
+        }
+
+        .neo-btn-primary {
+            background-color: var(--klein-blue);
+            color: var(--white);
+        }
+
+        .neo-btn-secondary {
+            background-color: var(--canary-yellow);
+            color: var(--black);
+        }
+
+        .neo-btn-outline {
+            background-color: transparent;
+            color: var(--klein-blue);
+            border-color: var(--klein-blue);
+        }
+
+        .neo-btn-large {
+            font-size: 1.2rem;
+            padding: 1rem 2rem;
+        }
+
+        .neo-btn-small {
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+        }
+
+        /* Form Components */
+        .neo-input {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0 var(--black);
+            margin-bottom: 1.5rem;
+        }
+
+        .neo-input:focus {
+            outline: none;
+            border-color: var(--klein-blue);
+        }
+
+        .neo-label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .neo-select {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0 var(--black);
+            margin-bottom: 1.5rem;
+            background-color: var(--white);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        .neo-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .neo-checkbox-label {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-left: 35px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            user-select: none;
+        }
+
+        .checkmark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            width: 20px;
+            border: 3px solid var(--black);
+            background-color: var(--white);
+        }
+
+        .neo-checkbox:checked ~ .checkmark {
+            background-color: var(--canary-yellow);
+        }
+
+        .checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .neo-checkbox:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .neo-checkbox-label .checkmark:after {
+            left: 5px;
+            top: 1px;
+            width: 5px;
+            height: 10px;
+            border: solid var(--black);
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Card Components */
+        .neo-info-card {
+            padding: 1.5rem;
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0 var(--black);
+            margin-bottom: 1.5rem;
+            background-color: var(--canary-yellow);
+            position: relative;
+        }
+
+        .neo-info-card h4 {
+            color: var(--klein-blue);
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .neo-info-card p {
+            margin-bottom: 0.5rem;
+        }
+
+        .neo-info-card.with-badge::before {
+            content: "NEW";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background-color: var(--klein-blue);
+            color: var(--white);
+            padding: 5px 10px;
+            border: 2px solid var(--black);
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        /* Alert Components */
+        .neo-alert {
+            padding: 1rem;
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0 var(--black);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .neo-alert-icon {
+            margin-right: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .neo-alert-content {
+            flex: 1;
+        }
+
+        .neo-alert-content h4 {
+            margin-bottom: 0.25rem;
+            font-size: 1.1rem;
+        }
+
+        .neo-alert-success {
+            background-color: #CEFAD0;
+        }
+
+        .neo-alert-warning {
+            background-color: var(--canary-yellow);
+        }
+
+        .neo-alert-error {
+            background-color: #FECACA;
+        }
+
+        .neo-alert-info {
+            background-color: #DBEAFE;
+        }
+
+        /* Navigation */
+        .neo-tabs {
+            display: flex;
+            border-bottom: 3px solid var(--black);
+            margin-bottom: 1.5rem;
+        }
+
+        .neo-tab {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--gray);
+            border: 3px solid var(--black);
+            border-bottom: none;
+            margin-right: 0.5rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .neo-tab.active {
+            background-color: var(--canary-yellow);
+            position: relative;
+        }
+
+        .neo-tab.active::after {
+            content: "";
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--canary-yellow);
+        }
+
+        /* Badge Component */
+        .neo-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 2px solid var(--black);
+            margin-left: 0.5rem;
+        }
+
+        .neo-badge-blue {
+            background-color: var(--klein-blue);
+            color: var(--white);
+        }
+
+        .neo-badge-yellow {
+            background-color: var(--canary-yellow);
+            color: var(--black);
+        }
+
+        /* Tooltip Component */
+        .neo-tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 2px dotted var(--black);
+            cursor: help;
+        }
+
+        .neo-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark-blue);
+            color: var(--white);
+            text-align: center;
+            padding: 0.5rem;
+            border: 2px solid var(--black);
+            box-shadow: 3px 3px 0 var(--black);
+            
+            /* Position the tooltip */
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            
+            /* Fade in tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .neo-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Progress Bar */
+        .neo-progress {
+            height: 25px;
+            background-color: var(--gray);
+            border: 3px solid var(--black);
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .neo-progress-bar {
+            height: 100%;
+            background-color: var(--klein-blue);
+            width: 75%;
+            transition: width 0.3s ease;
+        }
+
+        .neo-progress-label {
+            position: absolute;
+            top: 0;
+            right: 10px;
+            line-height: 20px;
+            color: var(--white);
+            font-weight: 700;
+            mix-blend-mode: difference;
+        }
+
+        /* Menu Navigation */
+        .menu {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .menu a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.2rem;
+            position: relative;
+        }
+
+        .menu a::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background-color: var(--canary-yellow);
+            bottom: -5px;
+            left: 0;
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.3s ease;
+        }
+
+        .menu a:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        @media (max-width: 768px) {
+            .component-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .neo-btn {
+                display: block;
+                width: 100%;
+                margin-right: 0;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#components" class="skip-link">Skip to content</a>
+    
+    <div class="neo-sidebar">
+        <div class="neo-sidebar-header">
+            <h1>Uniswap V4 Core</h1>
+            <p>Rust Implementation Documentation</p>
+        </div>
+        
+        <nav class="neo-nav">
+            <div class="neo-nav-section">
+                <div class="neo-nav-section-title">Documentation</div>
+                <a href="index.html">Main Documentation</a>
+                <a href="components.html" class="active">UI Components</a>
+            </div>
+            
+            <div class="neo-nav-section">
+                <div class="neo-nav-section-title">Components</div>
+                <a href="#alerts">Alerts</a>
+                <a href="#buttons">Buttons</a>
+                <a href="#cards">Cards</a>
+                <a href="#forms">Form Elements</a>
+                <a href="#navigation">Navigation</a>
+                <a href="#tables">Tables</a>
+                <a href="#accordion">Accordion</a>
+            </div>
+            
+            <div class="neo-nav-section">
+                <div class="neo-nav-section-title">Resources</div>
+                <a href="https://github.com/Uniswap/v4-core" target="_blank">GitHub Repository</a>
+            </div>
+        </nav>
+        
+        <button class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+    </div>
+    
+    <button class="mobile-menu-toggle" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+
+    <main class="neo-main">
+        <div class="neo-container">
+            <section id="components" class="neo-section">
+                <h2>Component Library</h2>
+                <p>This page showcases the Neobrutalism UI components used throughout the Uniswap V4 Core documentation. The design features a Klein Blue and Canary Yellow color scheme with bold borders, sharp shadows, and playful elements.</p>
+                
+                <div class="neo-search-container">
+                    <input type="text" class="neo-search" placeholder="Search components...">
+                </div>
+            </section>
+
+            <section id="alerts" class="neo-section">
+                <h2>Alerts</h2>
+                <p>Alert components are used to display important messages to the user.</p>
+                
+                <div class="alert alert-success">
+                    <div class="alert-icon">✓</div>
+                    <div class="alert-content">
+                        <h4>Success</h4>
+                        <p>Operation completed successfully! The hook has been registered.</p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <div class="alert-icon">!</div>
+                    <div class="alert-content">
+                        <h4>Warning</h4>
+                        <p>Be careful when setting protocol fees. High values may impact trading volume.</p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-error">
+                    <div class="alert-icon">×</div>
+                    <div class="alert-content">
+                        <h4>Error</h4>
+                        <p>Failed to initialize pool. Check that all parameters are valid.</p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <div class="alert-icon">i</div>
+                    <div class="alert-content">
+                        <h4>Information</h4>
+                        <p>Flash loans allow you to borrow assets without collateral as long as you return them within the same transaction.</p>
+                    </div>
+                </div>
+                
+                <div class="code-block">
+<div class="alert alert-success">
+    <div class="alert-icon">✓</div>
+    <div class="alert-content">
+        <h4>Success</h4>
+        <p>Operation completed successfully!</p>
+    </div>
+</div>
+
+<div class="alert alert-warning">
+    <div class="alert-icon">!</div>
+    <div class="alert-content">
+        <h4>Warning</h4>
+        <p>Be careful when setting protocol fees.</p>
+    </div>
+</div>
+                </div>
+            </section>
+
+            <section id="buttons" class="neo-section">
+                <h2>Buttons</h2>
+                <p>Buttons with Neobrutalism styling featuring bold borders and shadows.</p>
+                
+                <div class="button-container">
+                    <button class="neo-button">Primary Button</button>
+                    <button class="neo-button neo-button-secondary">Secondary Button</button>
+                    <button class="neo-button neo-button-outline">Outline Button</button>
+                    <button class="neo-button neo-button-small">Small Button</button>
+                    <button class="neo-button neo-button-large">Large Button</button>
+                    <button class="neo-button neo-button-anim">Animated Button</button>
+                </div>
+                
+                <div class="code-block">
+<button class="neo-button">Primary Button</button>
+<button class="neo-button neo-button-secondary">Secondary Button</button>
+<button class="neo-button neo-button-outline">Outline Button</button>
+<button class="neo-button neo-button-small">Small Button</button>
+<button class="neo-button neo-button-large">Large Button</button>
+<button class="neo-button neo-button-anim">Animated Button</button>
+                </div>
+            </section>
+
+            <section id="cards" class="neo-section">
+                <h2>Cards</h2>
+                <p>Card components for displaying grouped content.</p>
+                
+                <div class="neo-grid">
+                    <div class="neo-card">
+                        <h4>Standard Card</h4>
+                        <p>This is a standard card component used to group related content.</p>
+                        <button class="neo-button neo-button-small">Learn More</button>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>Feature Box</h4>
+                        <p>Feature boxes highlight important features with a colored background.</p>
+                        <button class="neo-button neo-button-small">Explore</button>
+                    </div>
+                    
+                    <div class="neo-card highlight-card">
+                        <h4>Highlighted Card</h4>
+                        <p>This card has additional styling to make it stand out.</p>
+                        <button class="neo-button neo-button-small">View Details</button>
+                    </div>
+                </div>
+                
+                <div class="code-block">
+<div class="neo-card">
+    <h4>Standard Card</h4>
+    <p>This is a standard card component used to group related content.</p>
+    <button class="neo-button neo-button-small">Learn More</button>
+</div>
+
+<div class="feature-box">
+    <h4>Feature Box</h4>
+    <p>Feature boxes highlight important features with a colored background.</p>
+    <button class="neo-button neo-button-small">Explore</button>
+</div>
+                </div>
+            </section>
+
+            <section id="forms" class="neo-section">
+                <h2>Form Elements</h2>
+                <p>Form elements styled with Neobrutalism design principles.</p>
+                
+                <div class="form-group">
+                    <label for="text-input">Text Input</label>
+                    <input type="text" id="text-input" class="neo-input" placeholder="Enter text...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="select-input">Select Dropdown</label>
+                    <select id="select-input" class="neo-select">
+                        <option value="">Select an option</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                        <option value="3">Option 3</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="neo-checkbox-container">
+                        <input type="checkbox">
+                        <span class="neo-checkbox"></span>
+                        Checkbox Option
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="neo-radio-container">
+                        <input type="radio" name="radio-group">
+                        <span class="neo-radio"></span>
+                        Radio Option 1
+                    </label>
+                    <label class="neo-radio-container">
+                        <input type="radio" name="radio-group">
+                        <span class="neo-radio"></span>
+                        Radio Option 2
+                    </label>
+                </div>
+                
+                <div class="code-block">
+<div class="form-group">
+    <label for="text-input">Text Input</label>
+    <input type="text" id="text-input" class="neo-input" placeholder="Enter text...">
+</div>
+
+<div class="form-group">
+    <label for="select-input">Select Dropdown</label>
+    <select id="select-input" class="neo-select">
+        <option value="">Select an option</option>
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+    </select>
+</div>
+
+<div class="form-group">
+    <label class="neo-checkbox-container">
+        <input type="checkbox">
+        <span class="neo-checkbox"></span>
+        Checkbox Option
+    </label>
+</div>
+                </div>
+            </section>
+
+            <section id="navigation" class="neo-section">
+                <h2>Navigation</h2>
+                <p>Navigation components for user interface navigation.</p>
+                
+                <div class="neo-tabs">
+                    <div class="neo-tab active">Tab 1</div>
+                    <div class="neo-tab">Tab 2</div>
+                    <div class="neo-tab">Tab 3</div>
+                </div>
+                
+                <div class="neo-tab-content">
+                    <p>This is the content for Tab 1. You can switch between tabs to view different content.</p>
+                </div>
+                
+                <div class="neo-badge-container">
+                    <h4>Badges</h4>
+                    <span class="neo-badge">Default</span>
+                    <span class="neo-badge yellow">Yellow</span>
+                    <span class="neo-badge">New</span>
+                    <span class="neo-badge">v4.0</span>
+                </div>
+                
+                <div class="neo-tooltip-container">
+                    <h4>Tooltips</h4>
+                    <div class="tooltip">
+                        Hover over me
+                        <span class="tooltip-text">This is a tooltip with additional information!</span>
+                    </div>
+                </div>
+                
+                <div class="neo-progress-container">
+                    <h4>Progress Bar</h4>
+                    <div class="neo-progress">
+                        <div class="neo-progress-bar" style="width: 75%;">75%</div>
+                    </div>
+                </div>
+                
+                <div class="code-block">
+<div class="neo-tabs">
+    <div class="neo-tab active">Tab 1</div>
+    <div class="neo-tab">Tab 2</div>
+    <div class="neo-tab">Tab 3</div>
+</div>
+
+<div class="neo-badge-container">
+    <span class="neo-badge">Default</span>
+    <span class="neo-badge yellow">Yellow</span>
+    <span class="neo-badge">New</span>
+</div>
+
+<div class="tooltip">
+    Hover over me
+    <span class="tooltip-text">This is a tooltip!</span>
+</div>
+                </div>
+            </section>
+
+            <section id="tables" class="neo-section">
+                <h2>Tables</h2>
+                <p>Tables for displaying structured data with Neobrutalism styling.</p>
+                
+                <table class="neo-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Enhanced Hook System</td>
+                            <td>Customizable hooks for dynamic fee adjustment</td>
+                            <td><span class="neo-badge">Implemented</span></td>
+                        </tr>
+                        <tr>
+                            <td>Protocol Fee System</td>
+                            <td>Flexible fee collection mechanism</td>
+                            <td><span class="neo-badge">Implemented</span></td>
+                        </tr>
+                        <tr>
+                            <td>ERC6909 Token Standard</td>
+                            <td>Multi-token standard for liquidity positions</td>
+                            <td><span class="neo-badge">Implemented</span></td>
+                        </tr>
+                        <tr>
+                            <td>Flash Loans</td>
+                            <td>Built-in flash loan functionality</td>
+                            <td><span class="neo-badge yellow">In Progress</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="code-block">
+<table class="neo-table">
+    <thead>
+        <tr>
+            <th>Feature</th>
+            <th>Description</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Enhanced Hook System</td>
+            <td>Customizable hooks for dynamic fee adjustment</td>
+            <td><span class="neo-badge">Implemented</span></td>
+        </tr>
+        <tr>
+            <td>Protocol Fee System</td>
+            <td>Flexible fee collection mechanism</td>
+            <td><span class="neo-badge">Implemented</span></td>
+        </tr>
+    </tbody>
+</table>
+                </div>
+            </section>
+
+            <section id="accordion" class="neo-section">
+                <h2>Accordion</h2>
+                <p>Accordion components for collapsible content sections.</p>
+                
+                <div class="neo-accordion">
+                    <div class="neo-accordion-item active">
+                        <div class="neo-accordion-header">
+                            <span>What is Uniswap V4?</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="neo-accordion-content">
+                            <p>Uniswap V4 is the latest version of the Uniswap protocol, featuring a new architecture with hooks, singleton contracts, and native flash loans. This Rust implementation provides an alternative to the original Solidity implementation while maintaining full API compatibility.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="neo-accordion-item">
+                        <div class="neo-accordion-header">
+                            <span>How do hooks work?</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="neo-accordion-content">
+                            <p>Hooks in Uniswap V4 are customizable components that can modify the behavior of pools. They can dynamically adjust fees, collect protocol fees, reward liquidity providers, and more. Hooks are registered with the pool manager and are called at specific points during swap and liquidity operations.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="neo-accordion-item">
+                        <div class="neo-accordion-header">
+                            <span>What are Flash Loans?</span>
+                            <span class="accordion-icon">▼</span>
+                        </div>
+                        <div class="neo-accordion-content">
+                            <p>Flash loans are uncollateralized loans that must be borrowed and repaid within a single transaction. They allow users to access liquidity without upfront capital, as long as the borrowed amount (plus any fees) is returned before the transaction completes.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="code-block">
+<div class="neo-accordion">
+    <div class="neo-accordion-item">
+        <div class="neo-accordion-header">
+            <span>What is Uniswap V4?</span>
+            <span class="accordion-icon">▼</span>
+        </div>
+        <div class="neo-accordion-content">
+            <p>Uniswap V4 is the latest version of the Uniswap protocol...</p>
+        </div>
+    </div>
+    
+    <div class="neo-accordion-item">
+        <div class="neo-accordion-header">
+            <span>How do hooks work?</span>
+            <span class="accordion-icon">▼</span>
+        </div>
+        <div class="neo-accordion-content">
+            <p>Hooks in Uniswap V4 are customizable components...</p>
+        </div>
+    </div>
+</div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <!-- Add Prism.js for code highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="scripts.js"></script>
+</body>
+</html> 

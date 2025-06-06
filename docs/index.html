@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uniswap V4 Core (Rust) Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        :root {
+            /* Klein Blue and Canary Yellow color scheme */
+            --klein-blue: #002FA7;
+            --canary-yellow: #FFEF00;
+            --dark-blue: #001D66;
+            --light-blue: #4F75D8;
+            --dark-yellow: #FFD100;
+            --light-yellow: #FFF7A0;
+            --black: #000000;
+            --white: #FFFFFF;
+            --gray: #F0F0F0;
+            --dark-gray: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Layout styles for sidebar and main content */
+        .neo-sidebar {
+            width: 280px;
+            background-color: var(--klein-blue);
+            color: var(--white);
+            padding: 2rem 1rem;
+            border-right: 4px solid var(--black);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .neo-sidebar-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--canary-yellow);
+        }
+
+        .neo-sidebar-header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: var(--white);
+        }
+
+        .neo-sidebar-header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .neo-main {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            max-width: calc(100% - 280px);
+        }
+
+        /* Navigation menu styles */
+        .neo-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .neo-nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .neo-nav-section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--canary-yellow);
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+
+        .neo-nav a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+            display: block;
+        }
+
+        .neo-nav a:hover, .neo-nav a.active {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .neo-nav a.active {
+            background-color: var(--canary-yellow);
+            color: var(--black);
+            font-weight: 700;
+        }
+
+        /* Neobrutalism styling */
+        .neo-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .neo-section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background-color: var(--white);
+            border: 4px solid var(--black);
+            box-shadow: 8px 8px 0 var(--black);
+            position: relative;
+        }
+
+        .neo-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--klein-blue);
+            border-bottom: 4px solid var(--black);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .neo-section h3 {
+            font-size: 1.75rem;
+            margin: 1.5rem 0 1rem;
+            color: var(--dark-blue);
+        }
+
+        .neo-section p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .neo-section ul, .neo-section ol {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .neo-section li {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .neo-button {
+            display: inline-block;
+            background-color: var(--canary-yellow);
+            color: var(--black);
+            font-weight: 700;
+            padding: 0.75rem 1.5rem;
+            border: 4px solid var(--black);
+            box-shadow: 5px 5px 0 var(--black);
+            text-decoration: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .neo-button:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0 var(--black);
+        }
+
+        .neo-button:active {
+            transform: translate(5px, 5px);
+            box-shadow: none;
+        }
+
+        .neo-card {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0 var(--black);
+            background-color: var(--gray);
+        }
+
+        .neo-card h4 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: var(--dark-blue);
+        }
+
+        .neo-card p {
+            font-size: 1rem;
+        }
+
+        .neo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .feature-box {
+            background-color: var(--canary-yellow);
+            padding: 1.5rem;
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0 var(--black);
+        }
+
+        .feature-box h4 {
+            color: var(--klein-blue);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--black);
+            padding-bottom: 0.5rem;
+        }
+
+        code {
+            font-family: monospace;
+            background-color: var(--gray);
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            background-color: var(--dark-gray);
+            color: var(--white);
+            padding: 1.5rem;
+            overflow-x: auto;
+            border: 3px solid var(--black);
+            margin-bottom: 1.5rem;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: var(--white);
+            padding: 0;
+        }
+
+        .highlight {
+            background-color: var(--canary-yellow);
+            padding: 0 0.3rem;
+            font-weight: 700;
+        }
+
+        /* Code block styling */
+        .code-block {
+            background-color: var(--dark-gray);
+            color: var(--white);
+            padding: 1.5rem;
+            border: 3px solid var(--black);
+            box-shadow: 5px 5px 0 var(--black);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+            font-family: monospace;
+        }
+
+        /* Theme toggle and mobile menu */
+        .theme-toggle {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10;
+            color: var(--white);
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 200;
+            background-color: var(--canary-yellow);
+            color: var(--black);
+            border: 3px solid var(--black);
+            padding: 0.5rem;
+            cursor: pointer;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .neo-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                width: 250px;
+            }
+            
+            .neo-sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .neo-main {
+                margin-left: 0;
+                max-width: 100%;
+                padding: 1rem;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .neo-section h2 {
+                font-size: 1.75rem;
+            }
+            
+            .neo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#overview" class="skip-link">Skip to content</a>
+    
+    <div class="neo-sidebar">
+        <div class="neo-sidebar-header">
+            <h1>Uniswap V4 Core</h1>
+            <p>Rust Implementation Documentation</p>
+        </div>
+        
+        <nav class="neo-nav">
+            <div class="neo-nav-section">
+                <div class="neo-nav-section-title">Getting Started</div>
+                <a href="#overview" class="active">Overview</a>
+                <a href="#features">Features</a>
+                <a href="#architecture">Architecture</a>
+            </div>
+            
+            <div class="neo-nav-section">
+                <div class="neo-nav-section-title">Development</div>
+                <a href="#examples">Examples</a>
+                <a href="#setup">Setup</a>
+                <a href="#developer-guidelines">Developer Guidelines</a>
+            </div>
+            
+            <div class="neo-nav-section">
+                <div class="neo-nav-section-title">Resources</div>
+                <a href="components.html">UI Components</a>
+                <a href="https://github.com/Uniswap/v4-core" target="_blank">GitHub Repository</a>
+            </div>
+        </nav>
+        
+        <button class="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+    </div>
+    
+    <button class="mobile-menu-toggle" aria-label="Toggle menu">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 6H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 18H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+
+    <main class="neo-main">
+        <div class="neo-container">
+            <section id="overview" class="neo-section">
+                <h2>Overview</h2>
+                <p>This is a <span class="highlight">Rust implementation</span> of the Uniswap V4 Core protocol. It aims to provide an alternative to the original <a href="https://github.com/Uniswap/v4-core" target="_blank">Solidity implementation of Uniswap V4</a>, maintaining full API compatibility while leveraging Rust's renowned safety and performance features.</p>
+                
+                <h3>Project Goals</h3>
+                <ul>
+                    <li><strong>Performance & Safety:</strong> Leverage Rust's capabilities to offer a potentially more performant and safer execution environment for Uniswap V4's core logic.</li>
+                    <li><strong>Full Compatibility:</strong> Maintain strict compatibility with the Uniswap V4 protocol specifications as defined by the core Solidity contracts.</li>
+                    <li><strong>Ecosystem Expansion:</strong> Provide a robust Rust-based alternative for developers and projects within the Uniswap V4 ecosystem who prefer or require Rust.</li>
+                </ul>
+                
+                <div class="neo-buttons">
+                    <a href="https://github.com/Uniswap/v4-core" class="neo-button">GitHub Repository</a>
+                    <a href="#setup" class="neo-button">Get Started</a>
+                </div>
+            </section>
+
+            <section id="features" class="neo-section">
+                <h2>Key Features</h2>
+                
+                <div class="neo-grid">
+                    <div class="feature-box">
+                        <h4>Enhanced Hook System</h4>
+                        <p>Customizable hooks that can dynamically adjust fees, collect protocol fees, and reward liquidity providers.</p>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>Protocol Fee System</h4>
+                        <p>Flexible fee collection with independent settings for different trading directions.</p>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>ERC6909 Token Standard</h4>
+                        <p>Multi-token standard for efficient management of liquidity positions.</p>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>Flash Loans</h4>
+                        <p>Built-in flash loan functionality for capital-efficient operations.</p>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>Dynamic Fee Adjustment</h4>
+                        <p>Market volatility-based fee adjustment for optimal trading conditions.</p>
+                    </div>
+                    
+                    <div class="feature-box">
+                        <h4>Multi-pool Routing</h4>
+                        <p>Efficient routing across multiple pools for optimized trading paths.</p>
+                    </div>
+                </div>
+                
+                <div class="architecture-diagram">
+                    <h3>Architecture Diagram</h3>
+                    <div class="diagram-container">
+                        <svg width="100%" height="100%" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
+                          <!-- Background -->
+                          <rect width="1000" height="500" fill="#05101e" />
+                          
+                          <!-- Components -->
+                          <!-- Top Row -->
+                          <rect x="425" y="60" width="150" height="60" rx="5" fill="#002FA7" stroke="#000000" stroke-width="3" />
+                          <text x="500" y="95" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">PoolManager</text>
+                          
+                          <rect x="590" y="60" width="150" height="60" rx="5" fill="#002FA7" stroke="#000000" stroke-width="3" />
+                          <text x="665" y="95" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">Fee Management</text>
+                          
+                          <rect x="755" y="60" width="150" height="60" rx="5" fill="#FFEF00" stroke="#000000" stroke-width="3" />
+                          <text x="830" y="95" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">Protocol Fees</text>
+                          
+                          <rect x="920" y="60" width="70" height="60" rx="5" fill="#002FA7" stroke="#000000" stroke-width="3" />
+                          <text x="955" y="95" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">LP Fees</text>
+                          
+                          <!-- Second Row -->
+                          <rect x="30" y="160" width="150" height="60" rx="5" fill="#FFEF00" stroke="#000000" stroke-width="3" />
+                          <text x="105" y="195" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">Pool Creation</text>
+                          
+                          <rect x="195" y="160" width="150" height="60" rx="5" fill="#FFEF00" stroke="#000000" stroke-width="3" />
+                          <text x="270" y="195" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">Liquidity Management</text>
+                          
+                          <rect x="360" y="160" width="150" height="60" rx="5" fill="#002FA7" stroke="#000000" stroke-width="3" />
+                          <text x="435" y="195" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">Swap Execution</text>
+                          
+                          <rect x="525" y="160" width="150" height="60" rx="5" fill="#FFEF00" stroke="#000000" stroke-width="3" />
+                          <text x="600" y="195" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">Flash Loans</text>
+                          
+                          <rect x="690" y="160" width="150" height="60" rx="5" fill="#002FA7" stroke="#000000" stroke-width="3" />
+                          <text x="765" y="195" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">ERC6909 Tokens</text>
+                          
+                          <rect x="855" y="160" width="150" height="60" rx="5" fill="#FFEF00" stroke="#000000" stroke-width="3" />
+                          <text x="930" y="195" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">State Management</text>
+                          
+                          <!-- Third Row -->
+                          <rect x="145" y="260" width="150" height="60" rx="5" fill="#002FA7" stroke="#000000" stroke-width="3" />
+                          <text x="220" y="295" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">Hook System</text>
+                          
+                          <rect x="475" y="260" width="150" height="60" rx="5" fill="#002FA7" stroke="#000000" stroke-width="3" />
+                          <text x="550" y="295" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">Flash Loan Callback</text>
+                          
+                          <rect x="640" y="260" width="150" height="60" rx="5" fill="#FFEF00" stroke="#000000" stroke-width="3" />
+                          <text x="715" y="295" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">Balance Validation</text>
+                          
+                          <rect x="805" y="260" width="150" height="60" rx="5" fill="#FFEF00" stroke="#000000" stroke-width="3" />
+                          <text x="880" y="295" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">Liquidity Tokens</text>
+                          
+                          <rect x="310" y="260" width="150" height="60" rx="5" fill="#002FA7" stroke="#000000" stroke-width="3" />
+                          <text x="385" y="295" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">Token Claims</text>
+                          
+                          <rect x="640" y="330" width="150" height="60" rx="5" fill="#002FA7" stroke="#000000" stroke-width="3" />
+                          <text x="715" y="365" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">Position Management</text>
+                          
+                          <rect x="805" y="330" width="150" height="60" rx="5" fill="#FFEF00" stroke="#000000" stroke-width="3" />
+                          <text x="880" y="365" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">Balance Deltas</text>
+                          
+                          <!-- Fourth Row -->
+                          <rect x="75" y="360" width="150" height="60" rx="5" fill="#FFEF00" stroke="#000000" stroke-width="3" />
+                          <text x="150" y="395" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">Dynamic Fee Hooks</text>
+                          
+                          <rect x="240" y="360" width="150" height="60" rx="5" fill="#002FA7" stroke="#000000" stroke-width="3" />
+                          <text x="315" y="395" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="white">Liquidity Mining Hooks</text>
+                          
+                          <rect x="405" y="360" width="150" height="60" rx="5" fill="#FFEF00" stroke="#000000" stroke-width="3" />
+                          <text x="480" y="395" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="black">Custom Logic Hooks</text>
+                          
+                          <!-- Connection Lines -->
+                          <!-- Top to Second Row -->
+                          <path d="M500 120 L105 160" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M500 120 L270 160" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M500 120 L435 160" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M500 120 L600 160" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M500 120 L765 160" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M500 120 L930 160" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          
+                          <!-- Second to Third Row -->
+                          <path d="M105 220 L220 260" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M270 220 L220 260" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M435 220 L220 260" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M435 220 L550 260" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M600 220 L550 260" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M600 220 L715 260" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M765 220 L880 260" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M765 220 L385 260" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M930 220 L715 330" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M930 220 L880 330" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          
+                          <!-- Third to Fourth Row -->
+                          <path d="M220 320 L150 360" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M220 320 L315 360" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M220 320 L480 360" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                          <path d="M435 220 L480 360" stroke="#FFFFFF" stroke-width="1.5" fill="none" />
+                        </svg>
+                        <p class="diagram-caption">Uniswap V4 Core component relationships and interactions</p>
+                    </div>
+                </div>
+                
+                <h3>Feature Details</h3>
+                
+                <div class="neo-card">
+                    <h4>Enhanced Hook System</h4>
+                    <ul>
+                        <li>Hooks that return Delta values, allowing hooks to directly influence transaction results</li>
+                        <li>Hook flag validation, ensuring hook addresses comply with standards</li>
+                        <li>Hook registry management</li>
+                        <li>Example Hook implementations: Dynamic Fee Hook, Liquidity Mining Hook</li>
+                    </ul>
+                </div>
+                
+                <div class="neo-card">
+                    <h4>Protocol Fee System</h4>
+                    <ul>
+                        <li>Setting and collecting protocol fees</li>
+                        <li>Independent fee settings for different trading directions</li>
+                        <li>Integration with LP fees</li>
+                        <li>Protocol fee controller and management</li>
+                    </ul>
+                </div>
+                
+                <div class="neo-card">
+                    <h4>ERC6909 Token Standard</h4>
+                    <ul>
+                        <li>Multi-token management</li>
+                        <li>Liquidity tokens</li>
+                        <li>ERC6909Claims extension - Supports token claim functionality</li>
+                        <li>Integration with pool state for managing liquidity tokens</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="architecture" class="neo-section">
+                <h2>Architecture Overview</h2>
+                
+                <p>The <span class="highlight">uniswap-v4-core</span> Rust implementation is designed with a modular architecture. The <code>src/</code> directory contains the core Rust logic, separated into components for pool management, mathematical operations, state handling, the hook system, and fee management.</p>
+                
+                <div class="code-block">
+uniswap-v4-core/
+├── contracts/                 # Solidity smart contracts
+├── src/                      # Rust implementation
+│   ├── core/                 # Core implementation
+│   │   ├── math/            # Mathematical operations
+│   │   ├── state/           # State management
+│   │   ├── hooks/           # Hook system
+│   │   └── pool_manager/    # Pool management
+│   ├── fees/                # Fee management
+│   └── bindings/            # Solidity-Rust bindings
+├── examples/                 # Example programs
+├── tests/                    # Test suite
+└── docs/                     # Documentation
+                </div>
+                
+                <h3>Technology Stack</h3>
+                <ul>
+                    <li><strong>Rust:</strong> The core logic is implemented in Rust for safety and performance.</li>
+                    <li><strong>Key Rust Crates:</strong>
+                        <ul>
+                            <li><code>ethers-rs</code>: For Ethereum blockchain interaction and smart contract bindings.</li>
+                            <li><code>revm</code>: An EVM implementation in Rust, used for testing and local execution.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Foundry:</strong> Utilized for managing Solidity contract interactions and dependencies.</li>
+                </ul>
+            </section>
+
+            <section id="examples" class="neo-section">
+                <h2>Examples</h2>
+                
+                <h3>ERC6909 Token Standard</h3>
+                <div class="code-block">
+// Create a new ERC6909 token
+let mut token = ERC6909::new();
+
+// Create addresses for testing
+let owner = Address::random();
+let spender = Address::random();
+let recipient = Address::random();
+
+// Define token IDs (in Uniswap v4, these would represent different liquidity positions)
+let token_id_1 = U256::from(1);
+let token_id_2 = U256::from(2);
+
+// Mint tokens to owner
+token.mint(owner, token_id_1, U256::from(1000)).unwrap();
+token.mint(owner, token_id_2, U256::from(500)).unwrap();
+
+// Transfer tokens
+token.transfer(owner, recipient, token_id_1, U256::from(300)).unwrap();
+                </div>
+                
+                <h3>Flash Loan Example</h3>
+                <div class="code-block">
+// Create a simple Flash Loan example
+let mut flash_loan = SimpleFlashLoanExample::new(
+    pool_manager.clone(),
+    currency,
+    amount,
+    recipient,
+);
+
+// Execute Flash Loan
+let result = flash_loan.execute();
+                </div>
+                
+                <h3>Running Examples</h3>
+                <div class="code-block">
+# Run the ERC6909 token standard example
+cargo run --example erc6909_example
+
+# Run the protocol fee example
+cargo run --example protocol_fee_example
+
+# Run the flash loan example
+cargo run --example flash_loan_example
+                </div>
+            </section>
+
+            <section id="setup" class="neo-section">
+                <h2>Getting Started</h2>
+                
+                <h3>Setup</h3>
+                <ol>
+                    <li>Install Rust dependencies:
+                        <div class="code-block">cargo build</div>
+                    </li>
+                    <li>Install Foundry dependencies:
+                        <div class="code-block">forge install</div>
+                    </li>
+                </ol>
+                
+                <h3>Running Tests</h3>
+                <div class="code-block">
+# Run all tests
+cargo test
+
+# Run specific integration tests
+cargo test --test integration::comprehensive_features_test
+
+# Run specific unit tests
+cargo test --test unit::dynamic_fee_hook_test
+
+# Run tests with verbose output
+cargo test -- --nocapture
+                </div>
+                
+                <h3>Test Categories</h3>
+                <ul>
+                    <li><strong>Unit Tests:</strong> Test individual components in isolation
+                        <ul>
+                            <li>Dynamic Fee Hook Test: Tests fee adjustment based on market volatility</li>
+                            <li>Protocol Fee Test: Tests protocol fee collection mechanism</li>
+                            <li>ERC6909 Test: Tests multi-token standard implementation</li>
+                        </ul>
+                    </li>
+                    <li><strong>Integration Tests:</strong> Test multiple components working together
+                        <ul>
+                            <li>Comprehensive Features Test: Tests interaction between hooks, protocol fees, and ERC6909 tokens</li>
+                            <li>Flash Loan Test: Tests flash loan functionality</li>
+                        </ul>
+                    </li>
+                </ul>
+            </section>
+
+            <section id="developer-guidelines" class="neo-section">
+                <h2>Developer Guidelines</h2>
+                
+                <h3>Common Issues & Best Practices</h3>
+                <div class="neo-card">
+                    <h4>Type Conversions</h4>
+                    <p>When working with U256 and other numeric types:</p>
+                    <ul>
+                        <li>Use <code>as_u128()</code>, <code>as_i128()</code> methods for safe conversions</li>
+                        <li>Prefer checked arithmetic operations to avoid overflow/underflow</li>
+                    </ul>
+                </div>
+                
+                <div class="neo-card">
+                    <h4>Mutability Considerations</h4>
+                    <ul>
+                        <li>Declare variables as mutable (<code>let mut x</code>) when they need to be modified</li>
+                        <li>Pay special attention to parameters in math functions that modify their inputs</li>
+                    </ul>
+                </div>
+                
+                <div class="neo-card">
+                    <h4>Test Strategies</h4>
+                    <ul>
+                        <li>Test both edge cases and typical scenarios</li>
+                        <li>For price calculations, use realistic price values to avoid precision issues</li>
+                        <li>When testing swaps, use appropriate price limits based on swap direction</li>
+                    </ul>
+                </div>
+                
+                <div class="important-note">
+                    Always refer to the official Uniswap V4 documentation for the most up-to-date protocol specifications.
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <!-- Add Prism.js for code highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="scripts.js"></script>
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu-toggle').addEventListener('click', function() {
+            document.querySelector('.neo-sidebar').classList.toggle('show');
+        });
+        
+        // Active link highlighting
+        const navLinks = document.querySelectorAll('.neo-nav a');
+        const sections = document.querySelectorAll('.neo-section');
+        
+        function setActiveLink() {
+            const scrollPosition = window.scrollY + 100;
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.offsetHeight;
+                const sectionId = section.getAttribute('id');
+                
+                if (sectionId && scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${sectionId}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', setActiveLink);
+        setActiveLink();
+    </script>
+</body>
+</html> 
